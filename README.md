@@ -1,95 +1,157 @@
-# Project Title: Multifactor Authentication System
+# Multi-Factor Authentication Password Manager
 
-This project is a multifactor authentication system that combines a Flask backend with a React frontend. The application allows users to log in using their email, receive a One-Time Password (OTP), and verify their identity through various authentication steps.
+A secure password management system with multi-factor authentication, built using React, Flask, and PostgreSQL. Features multiple encryption algorithms and enhanced security measures.
 
 ## Project Structure
 
 ```
-multifactor-authentication
-├── frontend
-│   ├── src
-│   │   ├── components
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── DashBoard.jsx
 │   │   │   ├── Login.jsx
-│   │   │   ├── OtpVerification.jsx
-│   │   │   ├── ImageAuthentication.jsx
-│   │   │   ├── Dashboard.jsx
-│   │   │   └── Passcode.jsx
+│   │   │   ├── OtpFlow.jsx
+│   │   │   ├── PasswordVault.jsx
+│   │   │   └── EncryptionSettings.jsx
+│   │   ├── App.css
 │   │   ├── App.jsx
-│   │   └── index.jsx
-│   ├── public
-│   │   └── index.html
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── public/
 │   ├── package.json
-│   └── README.md
-├── backend
-│   ├── app.py
-│   ├── email_code.py
-│   ├── requirements.txt
-│   └── static
-│       └── images
-├── README.md
-└── .gitignore
+│   └── vite.config.js
+└── backend/
+    ├── app.py
+    ├── models/
+    │   ├── __init__.py
+    │   ├── user.py
+    │   └── password.py
+    ├── utils/
+    │   ├── encryption.py
+    │   └── validators.py
+    ├── requirements.txt
+    ├── .env
+    └── static/
+        └── images/
 ```
 
 ## Features
 
-- **User Login**: Users can log in using their email address.
-- **OTP Verification**: After logging in, users receive an OTP via email for verification.
-- **Image Authentication**: Users must select specific images as part of the authentication process.
-- **Dashboard**: A user dashboard is displayed after successful authentication.
+- **Multi-Factor Authentication**: 
+  - Email-based OTP verification
+  - Master Key authentication
+  - Anti-phishing measures
 
-## Technologies Used
+- **Password Management**:
+  - Secure password vault
+  - Multiple encryption options (AES-256 and more)
+  - Dummy password protection
+  - Password strength analyzer
 
-- **Frontend**: React
-- **Backend**: Flask
-- **Email Service**: Flask-Mail for sending OTPs
+- **Security Features**:
+  - Master key protection
+  - Dummy password dashboard for security
+  - Multiple encryption algorithm choices
+  - Session management
+  - CORS protection
+
+## Tech Stack
+
+### Frontend
+- React 18.2.0
+- Material-UI (MUI)
+- Axios for API calls
+- React Router for navigation
+- Vite for build tooling
+
+### Backend
+- Flask
+- Flask-SQLAlchemy
+- PostgreSQL
+- Flask-Mail for email services
+- Cryptography libraries
+
+### Database
+- PostgreSQL
+- SQLAlchemy ORM
 
 ## Getting Started
 
 ### Prerequisites
-
 - Python 3.x
 - Node.js and npm
+- PostgreSQL
+- Gmail account for OTP service
 
 ### Installation
 
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   cd multifactor-authentication
-   ```
+1. Backend Setup:
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-2. Set up the backend:
-   - Navigate to the `backend` directory.
-   - Install the required Python packages:
-     ```
-     pip install -r requirements.txt
-     ```
+2. Configure Backend Environment:
+Create `.env` file in backend directory with:
+```
+SECRET_KEY=your_secret_key
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your_email@gmail.com
+MAIL_PASSWORD=your_app_password
+DATABASE_URL=postgresql://username:password@localhost:5432/dbname
+```
 
-3. Set up the frontend:
-   - Navigate to the `frontend` directory.
-   - Install the required npm packages:
-     ```
-     npm install
-     ```
+3. Setup PostgreSQL Database:
+```bash
+createdb password_manager
+python manage.py db upgrade
+```
+
+4. Frontend Setup:
+```bash
+cd frontend
+npm install
+```
 
 ### Running the Application
 
-1. Start the Flask backend:
-   ```
-   python app.py
-   ```
+1. Start Backend:
+```bash
+cd backend
+python app.py
+```
 
-2. Start the React frontend:
-   ```
-   npm start
-   ```
+2. Start Frontend:
+```bash
+cd frontend
+npm run dev
+```
 
-The application will be accessible at `http://localhost:3000` for the frontend and `http://localhost:5000` for the backend.
+Access the application at `http://localhost:5173`
 
-## Contributing
+## Security Features
 
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+### Encryption Options
+- AES-256 (Default)
+- Blowfish
+- Twofish
+- ChaCha20
 
-## License
+### Anti-Phishing Measures
+- Dummy password dashboard
+- Fake master key protection
+- Session-based authentication
+- Time-based OTP expiration
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+## API Endpoints
+
+- POST `/api/auth/register`: User registration
+- POST `/api/auth/login`: User login
+- POST `/api/auth/send-otp`: Send OTP
+- POST `/api/auth/verify-otp`: Verify OTP
+- GET `/api/passwords`: Get stored passwords
+- POST `/api/passwords`: Add new password
+- PUT `/api/passwords/{id}`: Update password
+- DELETE `/api/passwords/{id}`: Delete password
+- GET `/api/encryption/algorithms`: Available encryption algorithms
