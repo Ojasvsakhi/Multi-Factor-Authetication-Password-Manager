@@ -81,31 +81,28 @@ A secure password management system with multi-factor authentication, built usin
 - Basic project structure setup
 - Frontend React components scaffolding
 - Backend Flask API setup
-- PostgreSQL database configuration
 - Email OTP system implementation
-- Basic authentication flow
-
 ### In Progress 
-- Password vault implementation (80%)
-- Multiple encryption algorithms integration (65%)
-- Master key authentication system (50%)
-- Dummy password dashboard (45%)
-- User settings management (30%)
-
-### Upcoming Features 
 - Password strength analyzer
+- Password generation tools
+- Frontend
+### Upcoming Features 
+- Password vault implementation
+- Multiple encryption algorithms integration
+- Master key authentication system
+- Dummy password dashboard
+- User settings management
 - Password sharing capabilities
 - Browser extension integration
 - Backup and restore functionality
-- Password generation tools
 
 ### Development Timeline
 - **Phase 1** (Completed):
   - Project setup
   - Basic authentication
-  - Database models
   
 - **Phase 2** (Current):
+  - Database models
   - Password vault
   - Encryption systems
   - Security features
