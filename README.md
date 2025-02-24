@@ -40,7 +40,8 @@ A secure password management system with multi-factor authentication, built usin
 - **Multi-Factor Authentication**: 
   - Email-based OTP verification
   - Master Key authentication
-  - Anti-phishing measures
+  - Biometric authentication
+  - puzzle authentication
 
 - **Password Management**:
   - Secure password vault
@@ -52,7 +53,6 @@ A secure password management system with multi-factor authentication, built usin
   - Master key protection
   - Dummy password dashboard for security
   - Multiple encryption algorithm choices
-  - Session management
   - CORS protection
 
 ## Tech Stack
@@ -115,7 +115,6 @@ A secure password management system with multi-factor authentication, built usin
 ### Known Issues 
 1. OTP email delivery delays in some cases
 2. Session persistence issues after browser refresh
-3. Password strength meter accuracy improvements needed
 
 ## Getting Started
 
