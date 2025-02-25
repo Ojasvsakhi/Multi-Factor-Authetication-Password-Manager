@@ -12,7 +12,12 @@ import os
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+from flask_cors import CORS
+from flask_cors import CORS 
+
+app = Flask(__name__)
+CORS(app, supports_credentials=True, origins=["https://multi-factor-authetication-password-manager.vercel.app"])
+
 
 # Configure using environment variables
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')

@@ -19,9 +19,13 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         setMessage('');
-
+    
         try {
-            const response = await axios.post(`${API_URL}/send_otp`, { email });
+            const response = await axios.post(
+                `${API_URL}/api/send-otp`, // Correct endpoint
+                { email },
+                { withCredentials: true } // Needed for session-based authentication
+            );
             setMessage(response.data.message);
         } catch (error) {
             setMessage(error.response?.data?.error || 'An error occurred');
@@ -29,6 +33,7 @@ const Login = () => {
             setLoading(false);
         }
     };
+    
 
     return (
         <Container maxWidth="sm">
