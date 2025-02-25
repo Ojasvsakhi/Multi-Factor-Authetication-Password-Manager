@@ -10,6 +10,7 @@ import {
   Alert,
   Link,
 } from "@mui/material";
+import API_URL from "../config"; // Import API URL from config.js
 
 const OtpFlow = () => {
   const [email, setEmail] = useState("");
@@ -48,12 +49,12 @@ const OtpFlow = () => {
     setError("");
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/send-otp",
+        `${API_URL}/api/send-otp`,
         { email },
         { withCredentials: true }
       );
       setSuccess("OTP resent successfully");
-      setTimeLeft(30); // Reset timer to 5 minutes
+      setTimeLeft(300); // Reset timer to 5 minutes
       setCanResend(false);
     } catch (error) {
       setError(error.response?.data?.error || "Failed to resend OTP");
@@ -69,7 +70,7 @@ const OtpFlow = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/send-otp",
+        `${API_URL}/api/send-otp`,
         { email },
         { withCredentials: true }
       );
@@ -91,7 +92,7 @@ const OtpFlow = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/verify-otp",
+        `${API_URL}/api/verify-otp`,
         { otp },
         { withCredentials: true }
       );
