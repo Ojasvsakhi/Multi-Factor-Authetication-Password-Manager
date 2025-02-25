@@ -78,6 +78,9 @@ def send_otp():
         }), 200
     else:
         return jsonify({'error': message}), 500
+@app.route('/routes', methods=['GET'])
+def list_routes():
+    return jsonify([str(rule) for rule in app.url_map.iter_rules()])
 @app.route('/')
 def home():
     return jsonify({"message": "Flask backend is running!"})
