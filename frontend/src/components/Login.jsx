@@ -8,7 +8,7 @@ import {
     Box
 } from '@mui/material';
 import axios from 'axios';
-import API_URL from "../config";  // Import API URL
+import API_URL from "../config";
 
 const Login = () => {
     const [email, setEmail] = useState('');
