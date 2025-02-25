@@ -8,6 +8,7 @@ import {
     Box
 } from '@mui/material';
 import axios from 'axios';
+import API_URL from "../config";  // Import API URL
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ const Login = () => {
         setMessage('');
 
         try {
-            const response = await axios.post('http://localhost:5000/send_otp', { email });
+            const response = await axios.post(`${API_URL}/send_otp`, { email });
             setMessage(response.data.message);
         } catch (error) {
             setMessage(error.response?.data?.error || 'An error occurred');
