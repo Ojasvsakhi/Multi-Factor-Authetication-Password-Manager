@@ -32,6 +32,7 @@ const Login = () => {
     return (
         <Container maxWidth={false} sx={{ 
             minHeight: '100vh', 
+            width: "206vh",
             display: 'flex', 
             alignItems: 'center',
             justifyContent: 'center',
