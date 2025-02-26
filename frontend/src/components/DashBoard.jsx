@@ -8,6 +8,7 @@ const Dashboard = () => {
     return (
         <Container maxWidth={false} sx={{ 
             minHeight: '100vh',
+            widht: "206vh",
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
