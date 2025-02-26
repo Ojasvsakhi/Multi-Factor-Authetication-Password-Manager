@@ -1,237 +1,131 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import {
-  Container,
-  Paper,
-  TextField,
-  Button,
-  Typography,
-  Box,
-  Alert,
-  Link,
-} from "@mui/material";
-import API_URL from "../config"; // Import API URL from config.js
+import React, { useState } from 'react';
+import { Container, Paper, TextField, Button, Typography, Box, Alert } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import API_URL from '../config';
+import SecurityIcon from '@mui/icons-material/Security';
 
 const OtpFlow = () => {
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState("email");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
-  const [canResend, setCanResend] = useState(false);
+    const [otp, setOtp] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('');
+    const location = useLocation();
+    const navigate = useNavigate();
+    const email = location.state?.email;
 
-  useEffect(() => {
-    let timer;
-    if (step === "otp" && timeLeft > 0) {
-      timer = setInterval(() => {
-        setTimeLeft((prevTime) => {
-          if (prevTime <= 1) {
-            setCanResend(true);
-            return 0;
-          }
-          return prevTime - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [step, timeLeft]);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const response = await axios.post(
+                `${API_URL}/api/verify-otp`,
+                { otp },
+                { withCredentials: true }
+            );
+            setMessage(response.data.message);
+            navigate('/dashboard');
+        } catch (error) {
+            setMessage(error.response?.data?.error || 'Verification failed');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-  };
+    return (
+        <Container maxWidth={false} sx={{ 
+            minHeight: '100vh', 
+            display: 'flex', 
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d)',
+            animation: 'gradientBG 15s ease infinite',
+        }}>
+            <Paper elevation={3} sx={{
+                p: 4,
+                width: '100%',
+                maxWidth: '400px',
+                background: 'rgba(44, 62, 80, 0.9)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+                borderRadius: '15px',
+            }}>
+                <Box sx={{ textAlign: 'center', mb: 3 }}>
+                    <SecurityIcon sx={{ 
+                        fontSize: 50, 
+                        color: '#f1c40f',
+                        animation: 'pulse 2s infinite'
+                    }} />
+                    <Typography variant="h4" sx={{ 
+                        color: '#ecf0f1',
+                        textTransform: 'uppercase',
+                        letterSpacing: '2px',
+                        mt: 2
+                    }}>
+                        Level 2: Code Breaking
+                    </Typography>
+                    <Typography variant="body1" sx={{ color: '#bdc3c7', mt: 1 }}>
+                        Enter the secret code sent to {email}
+                    </Typography>
+                </Box>
 
-  const handleResendOtp = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/send-otp`,
-        { email },
-        { withCredentials: true }
-      );
-      setSuccess("OTP resent successfully");
-      setTimeLeft(300); // Reset timer to 5 minutes
-      setCanResend(false);
-    } catch (error) {
-      setError(error.response?.data?.error || "Failed to resend OTP");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSendOtp = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/send-otp`,
-        { email },
-        { withCredentials: true }
-      );
-      setStep("otp");
-      setSuccess("OTP sent successfully");
-      setTimeLeft(300); // Initialize timer
-      setCanResend(false);
-    } catch (error) {
-      setError(error.response?.data?.error || "Failed to send OTP");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/verify-otp`,
-        { otp },
-        { withCredentials: true }
-      );
-      if (response.data.status === "success") {
-        setSuccess(response.data.message);
-        setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 2000);
-      }
-    } catch (error) {
-      setError(error.response?.data?.error || "Failed to verify OTP");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Container
-      maxWidth={false}
-      sx={{
-        height: "100vh",
-        width: "200vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#ffffff",
-      }}
-    >
-      <Box
-        sx={{
-          width: "100%",
-          maxWidth: "600px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "20px",
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            p: 6,
-            width: "100%",
-            maxWidth: "1000px",
-            minHeight: "40px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            borderRadius: 2,
-            boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-          }}
-        >
-          {success && (
-            <Alert severity="success" sx={{ mb: 2, width: "100%" }}>
-              {success}
-            </Alert>
-          )}
-          {error && (
-            <Alert severity="error" sx={{ mb: 2, width: "100%" }}>
-              {error}
-            </Alert>
-          )}
-          {step === "email" ? (
-            <form onSubmit={handleSendOtp} style={{ width: "100%" }}>
-              <Typography variant="h5" gutterBottom align="center">
-                Enter Email Address
-              </Typography>
-              <TextField
-                fullWidth
-                type="email"
-                label="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                margin="normal"
-                required
-                disabled={loading}
-              />
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                sx={{ mt: 2 }}
-                disabled={loading}
-              >
-                {loading ? "Sending..." : "Send OTP"}
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp} style={{ width: "100%" }}>
-              <Typography variant="h5" gutterBottom align="center">
-                Enter OTP
-              </Typography>
-              <Typography variant="body2" color="textSecondary" align="center" sx={{ mb: 1 }}>
-                OTP has been sent to {email}
-              </Typography>
-              <Typography variant="body2" color="textSecondary" align="center" sx={{ mb: 2 }}>
-                Time remaining: {formatTime(timeLeft)}
-              </Typography>
-              <TextField
-                fullWidth
-                type="text"
-                label="OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                margin="normal"
-                required
-                disabled={loading}
-              />
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                sx={{ mt: 2 }}
-                disabled={loading}
-              >
-                {loading ? "Verifying..." : "Verify OTP"}
-              </Button>
-              <Box sx={{ mt: 2, textAlign: "center" }}>
-                <Link
-                  component="button"
-                  variant="body2"
-                  onClick={handleResendOtp}
-                  disabled={!canResend || loading}
-                  sx={{
-                    textDecoration: "none",
-                    cursor: canResend ? "pointer" : "default",
-                    color: canResend ? "primary.main" : "text.disabled",
-                  }}
-                >
-                  {canResend ? "Resend OTP" : `Wait ${formatTime(timeLeft)} before resending`}
-                </Link>
-              </Box>
-            </form>
-          )}
-        </Paper>
-      </Box>
-    </Container>
-  );
+                <form onSubmit={handleSubmit}>
+                    <TextField
+                        fullWidth
+                        type="text"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        label="Enter OTP"
+                        variant="outlined"
+                        margin="normal"
+                        required
+                        disabled={loading}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                color: '#ecf0f1',
+                                '& fieldset': {
+                                    borderColor: '#3498db',
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: '#2ecc71',
+                                },
+                            },
+                            '& .MuiInputLabel-root': {
+                                color: '#bdc3c7',
+                            }
+                        }}
+                    />
+                    <Button 
+                        type="submit"
+                        variant="contained"
+                        fullWidth
+                        sx={{
+                            mt: 3,
+                            mb: 2,
+                            background: 'linear-gradient(45deg, #2ecc71, #3498db)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '1px',
+                            transition: 'all 0.3s ease',
+                            '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 5px 15px rgba(46, 204, 113, 0.4)',
+                            }
+                        }}
+                        disabled={loading}
+                    >
+                        {loading ? 'Verifying...' : 'Verify Code'}
+                    </Button>
+                    {message && (
+                        <Alert 
+                            severity={message.includes('successfully') ? 'success' : 'error'}
+                            sx={{ mt: 2 }}
+                        >
+                            {message}
+                        </Alert>
+                    )}
+                </form>
+            </Paper>
+        </Container>
+    );
 };
 
 export default OtpFlow;
