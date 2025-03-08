@@ -38,12 +38,19 @@ app.config.update(
 Session(app)
 
 # CORS configuration
+from flask_cors import CORS
+
 CORS(app, 
      supports_credentials=True, 
-     origins=["http://localhost:5173", "https://multi-factor-authetication-password-manager.vercel.app"],
+     origins=[
+         "http://localhost:5173",
+         "https://multi-factor-authetication-password-manager.vercel.app",
+         "https://multi-factor-authetication-pass-git-aa301e-ojasvsakhis-projects.vercel.app"  # Add new branch frontend URL
+     ],
      allow_headers=["Content-Type"],
      expose_headers=["Access-Control-Allow-Origin"],
      methods=["GET", "POST", "OPTIONS"])
+
 
 # Mail configuration
 app.config.update(
