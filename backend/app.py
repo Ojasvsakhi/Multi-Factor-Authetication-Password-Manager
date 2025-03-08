@@ -43,11 +43,11 @@ from flask_cors import CORS
 CORS(app, 
      supports_credentials=True, 
      origins=[
-         "http://localhost:5173",
-         "https://multi-factor-authetication-password-manager.vercel.app",
-         "https://multi-factor-authetication-pass-git-aa301e-ojasvsakhis-projects.vercel.app"  # Add new branch frontend URL
+         "http://localhost:5173", 
+         "https://multi-factor-authetication-password-manager.vercel.app", 
+         "https://multi-factor-authetication-pass-git-aa301e-ojasvsakhis-projects.vercel.app"
      ],
-     allow_headers=["Content-Type"],
+     allow_headers=["Content-Type", "Authorization"],
      expose_headers=["Access-Control-Allow-Origin"],
      methods=["GET", "POST", "OPTIONS"])
 
@@ -251,8 +251,17 @@ def decrypt_password():
     except Exception as e:
         print(f"Error decrypting password: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-@app.route('/api/verify-master-key', methods=['POST'])
+@app.route('/api/verify-master-key', methods=['OPTIONS', 'POST'])
 def verify_master_key():
+    if request.method == "OPTIONS":
+        # Handle CORS preflight request
+        response = jsonify({"message": "CORS preflight successful"})
+        response.headers.add("Access-Control-Allow-Origin", request.headers.get("Origin", "*"))
+        response.headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        response.headers.add("Access-Control-Allow-Credentials", "true")
+        return response, 200
+
     try:
         data = request.get_json()
         master_key = data.get('masterKey')
@@ -260,8 +269,9 @@ def verify_master_key():
         if not master_key:
             return jsonify({'error': 'Master key is required'}), 400
             
-        # For demo, using a fixed master key. In production, this should be stored securely
-        CORRECT_MASTER_KEY = "SecretMasterKey123"  # Store this securely in environment variables
+        # Use an environment variable instead of hardcoded key
+        import os
+        CORRECT_MASTER_KEY = os.getenv("MASTER_KEY", "SecretMasterKey123") 
         
         if master_key == CORRECT_MASTER_KEY:
             session['master_key_verified'] = True
@@ -275,6 +285,5 @@ def verify_master_key():
     except Exception as e:
         print(f"Error in verify_master_key: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-
 if __name__ == '__main__':
     app.run(debug=True)
