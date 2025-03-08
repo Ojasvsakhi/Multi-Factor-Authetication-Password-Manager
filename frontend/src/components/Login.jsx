@@ -15,19 +15,14 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await axios({
-                method: 'post',
-                url: `${API_URL}/api/send-otp`,
-                data: { email },
-                withCredentials: true,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await axios.post(
+                `${API_URL}/api/send-otp`,
+                { email },
+                { withCredentials: true }
+            );
             setMessage(response.data.message);
             navigate('/verify-otp', { state: { email } });
         } catch (error) {
-            console.error('Error:', error);
             setMessage(error.response?.data?.error || 'An error occurred');
         } finally {
             setLoading(false);
