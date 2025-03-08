@@ -15,13 +15,17 @@ const MasterKeyAuth = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await axios.post(
-                `${API_URL}/api/verify-master-key`,
-                { masterKey },
-                { withCredentials: true }
-            );
+            const response = await axios({
+                method: 'post',
+                url: `${API_URL}/api/verify-master-key`,
+                data: { masterKey },
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             setMessage(response.data.message);
-            navigate('/login'); // Navigate to email login after master key verification
+            navigate('/login');
         } catch (error) {
             setMessage(error.response?.data?.error || 'Invalid master key');
         } finally {

@@ -17,11 +17,15 @@ const OtpFlow = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await axios.post(
-                `${API_URL}/api/verify-otp`,
-                { otp },
-                { withCredentials: true }
-            );
+            const response = await axios({
+                method: 'post',
+                url: `${API_URL}/api/verify-otp`,
+                data: { otp },
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             setMessage(response.data.message);
             navigate('/dashboard');
         } catch (error) {

@@ -1,21 +1,18 @@
 import random
 import time
 import logging
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from cryptography.fernet import InvalidToken
+import base64
+import os
 import re
+import secrets
+from datetime import timedelta
 from flask import Flask, jsonify, request, session
 from flask_mail import Mail, Message
-import bcrypt
 from flask_session import Session
-from flask_cors import CORS 
-import base64
+from flask_cors import CORS
 from dotenv import load_dotenv
-import os
-from datetime import timedelta
+from cryptography.fernet import InvalidToken
 from utils.encryption import PasswordEncryption
-import secrets
 
 # Load environment variables
 load_dotenv()
@@ -38,14 +35,14 @@ app.config.update(
 Session(app)
 
 # CORS configuration
-CORS(app, supports_credentials=True, origins=[
-    "http://localhost:5173",
-    "https://multi-factor-authetication-password-manager.vercel.app",
-    "https://multi-factor-authetication-pass-git-aa301e-ojasvsakhis-projects.vercel.app"
-])
-
-# Rate limiter
-limiter = Limiter(get_remote_address, app=app, default_limits=["5 per minute"])
+CORS(app, 
+     supports_credentials=True, 
+     origins=["http://localhost:5173",
+              "https://multi-factor-authetication-password-manager.vercel.app",
+              "https://multi-factor-authetication-pass-git-aa301e-ojasvsakhis-projects.vercel.app"],
+     allow_headers=["Content-Type","Authorization"],
+     expose_headers=["Access-Control-Allow-Origin"],
+     methods=["GET", "POST", "OPTIONS"])
 
 # Mail configuration
 app.config.update(
@@ -88,18 +85,33 @@ def send_otp_email(user_email, otp):
     except Exception as e:
         return False, str(e)
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    return jsonify({'status': 'healthy', 'session_active': 'email' in session}), 200
+@app.route('/api/verify-master-key', methods=['POST'])
+def verify_master_key():
+    try:
+        data = request.get_json()
+        master_password = data.get('masterPassword')
+        stored_salt = session.get('encryption_salt')
+        
+        if not master_password:
+            return jsonify({'error': 'Master password is required'}), 400
+
+        if not stored_salt:
+            return jsonify({'error': 'No master key has been generated'}), 400
+        
+        salt = base64.urlsafe_b64decode(stored_salt.encode())
+        key, _ = PasswordEncryption.generate_key(master_password, salt)
+        
+        session['master_key_verified'] = True
+        return jsonify({'message': 'Master key verified successfully'}), 200
+    except Exception as e:
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/send-otp', methods=['POST'])
-@limiter.limit("3 per minute")
 def send_otp():
     try:
         data = request.get_json()
         email = data.get('email')
-        if not session.get('master_key_verified'):
-            return jsonify({'error': 'Master key verification required'}), 401
+        
         if not email:
             return jsonify({'error': 'Email is required'}), 400
         
@@ -111,12 +123,11 @@ def send_otp():
             session['email'] = email
             session['otp'] = str(otp)
             session['otp_expires'] = time.time() + 300
-            
             return jsonify({'message': 'OTP sent successfully', 'email': email}), 200
         else:
             return jsonify({'error': message}), 500
             
-    except Exception:
+    except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/verify-otp', methods=['POST'])
@@ -124,9 +135,7 @@ def verify_otp():
     try:
         data = request.get_json()
         entered_otp = str(data.get('otp'))
-        if not entered_otp:
-            return jsonify({'error': 'OTP is required'}), 400
-
+        
         email = session.get('email')
         stored_otp = session.get('otp')
         otp_expires = session.get('otp_expires')
@@ -145,83 +154,10 @@ def verify_otp():
             session.pop('otp', None)
             session.pop('otp_expires', None)
             return jsonify({'status': 'success', 'message': 'OTP verified successfully', 'email': email}), 200
-            
+        
         return jsonify({'error': 'Invalid OTP'}), 400
-
-    except Exception:
-        return jsonify({'error': 'Internal server error'}), 500
-
-@app.route('/api/encrypt-password', methods=['POST'])
-def encrypt_password():
-    try:
-        if 'otp_verified' not in session:
-            return jsonify({'error': 'OTP verification required'}), 401
-
-        data = request.get_json()
-        password = data.get('password')
-        master_password = data.get('masterPassword')
-        
-        if not all([password, master_password]):
-            return jsonify({'error': 'Password and master password are required'}), 400
-
-        salt = base64.urlsafe_b64decode(session['encryption_salt'].encode())
-        key, _ = PasswordEncryption.generate_key(master_password, salt)
-        encrypted_password = PasswordEncryption.encrypt_password(password, key)
-        
-        return jsonify({'encryptedPassword': encrypted_password}), 200
-
-    except Exception:
-        return jsonify({'error': 'Internal server error'}), 500
-
-@app.route('/api/decrypt-password', methods=['POST'])
-def decrypt_password():
-    try:
-        if 'otp_verified' not in session:
-            return jsonify({'error': 'OTP verification required'}), 401
-
-        data = request.get_json()
-        encrypted_password = data.get('encryptedPassword')
-        master_password = data.get('masterPassword')
-        
-        if not all([encrypted_password, master_password]):
-            return jsonify({'error': 'Encrypted password and master password are required'}), 400
-
-        salt = base64.urlsafe_b64decode(session['encryption_salt'].encode())
-        key, _ = PasswordEncryption.generate_key(master_password, salt)
-        decrypted_password = PasswordEncryption.decrypt_password(encrypted_password, key)
-        
-        return jsonify({'decryptedPassword': decrypted_password}), 200
-
-    except Exception:
-        return jsonify({'error': 'Internal server error'}), 500
-
-@app.route('/api/verify-master-key', methods=['OPTIONS', 'POST', 'GET'])
-def verify_master_key():
-    if request.method == "OPTIONS":
-        response = jsonify({"message": "CORS preflight successful"})
-        response.headers.add("Access-Control-Allow-Origin", request.headers.get("Origin", "*"))
-        response.headers.add("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
-        response.headers.add("Access-Control-Allow-Credentials", "true")
-        return response, 200
-
-    try:
-        data = request.get_json()
-        master_key = data.get('masterKey')
-        
-        if not master_key:
-            return jsonify({'error': 'Master key is required'}), 400
-            
-        CORRECT_MASTER_KEY = os.getenv("MASTER_KEY", "SecretMasterKey123") 
-        
-        if master_key == CORRECT_MASTER_KEY:
-            session['master_key_verified'] = True
-            return jsonify({'status': 'success', 'message': 'Master key verified successfully'}), 200
-        else:
-            return jsonify({'error': 'Invalid master key'}), 401
-            
-    except Exception:
+    except Exception as e:
         return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
+    app.run(debug=True)
