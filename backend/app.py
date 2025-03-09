@@ -32,25 +32,12 @@ Session(app)
 
 # CORS configuration
 CORS(app, 
-<<<<<<< Updated upstream
      supports_credentials=True, 
      origins=["http://localhost:5173", "https://multi-factor-authetication-password-manager.vercel.app"],
      allow_headers=["Content-Type"],
      expose_headers=["Access-Control-Allow-Origin"],
      methods=["GET", "POST", "OPTIONS"])
-=======
-     resources={r"/api/*": {"origins": [
-         "http://localhost:5173",
-         "http://localhost:4173",
-         "http://127.0.0.1:5173",
-         "http://127.0.0.1:4173",
-         "https://password-manager-4qjf.onrender.com"
-     ]}},
-     supports_credentials=True,
-     allow_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-     allow_credentials=True)
->>>>>>> Stashed changes
+
 
 # Mail configuration
 app.config.update(
