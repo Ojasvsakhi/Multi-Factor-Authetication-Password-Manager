@@ -32,7 +32,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
   } catch (error: any) {
     setError(error.response?.data?.message || 'Failed to send OTP');
-    setIsHacking(false);  // Play error sound if available
+    setIsHacking(false);
   }
 };
 

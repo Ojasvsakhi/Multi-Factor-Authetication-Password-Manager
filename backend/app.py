@@ -8,6 +8,8 @@ from flask_cors import CORS
 import re
 from dotenv import load_dotenv
 import os
+from retry import retry
+import logging
 from datetime import timedelta
 
 # Load environment variables
@@ -40,6 +42,7 @@ CORS(app,
 
 
 # Mail configuration
+# Mail configuration
 app.config.update(
     MAIL_SERVER=os.getenv('MAIL_SERVER'),
     MAIL_PORT=int(os.getenv('MAIL_PORT')),
@@ -47,8 +50,15 @@ app.config.update(
     MAIL_PASSWORD=os.getenv('MAIL_PASSWORD'),
     MAIL_USE_TLS=os.getenv('MAIL_USE_TLS') == 'True',
     MAIL_USE_SSL=os.getenv('MAIL_USE_SSL') == 'True',
-    MAIL_DEFAULT_SENDER=os.getenv('MAIL_DEFAULT_SENDER')
+    MAIL_DEFAULT_SENDER=('Password Manager', os.getenv('MAIL_DEFAULT_SENDER')),  # Changed this line
+    MAIL_MAX_EMAILS=None,
+    MAIL_SUPPRESS_SEND=False,
+    MAIL_ASCII_ATTACHMENTS=False,
+    MAIL_TIMEOUT=30  # Added timeout
 )
+
+# Initialize logging
+logging.basicConfig(level=logging.INFO)
 
 mail = Mail(app)
 
@@ -58,29 +68,31 @@ def is_valid_email(email):
 def generate_otp():
     return random.randint(100000, 999999)
 
+@retry(tries=3, delay=1, backoff=2, logger=logging.getLogger(__name__))
 def send_otp_email(user_email, otp):
     try:
         if not is_valid_email(user_email):
             return False, "Invalid email address"
 
         msg = Message(
-            'Your OTP for Accessing Password Manager',
-            sender=app.config['MAIL_DEFAULT_SENDER'],
+            'Your OTP for Password Manager',
             recipients=[user_email]
         )
         msg.body = (
             f'Your One-Time Password (OTP) is: {otp}\n\n'
             'This OTP is valid for the next 5 minutes.\n'
             'If you did not request this OTP, please ignore this email.\n\n'
-            'Thank you.'
+            'Thank you,\n'
+            'Password Manager Team'
         )
         
-        mail.send(msg)
-        print(f"OTP sent to {user_email}")
+        with app.app_context():  # Added app context
+            mail.send(msg)
+            logging.info(f"OTP sent successfully to {user_email}")
         return True, "OTP sent successfully"
     except Exception as e:
-        print(f"Failed to send OTP: {str(e)}")
-        return False, str(e)
+        logging.error(f"Failed to send OTP: {str(e)}")
+        raise
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -95,6 +107,9 @@ def send_otp():
         if not email:
             return jsonify({'error': 'Email is required'}), 400
         
+        # Clear any existing session data
+        session.clear()
+        
         otp = generate_otp()
         success, message = send_otp_email(email, otp)
         
@@ -104,17 +119,18 @@ def send_otp():
             session['otp'] = str(otp)
             session['otp_expires'] = time.time() + 300
             
-            print(f"Session data stored: {dict(session)}")
+            logging.info(f"Session data stored for {email}")
             
             return jsonify({
                 'message': 'OTP sent successfully',
                 'email': email
             }), 200
         else:
+            logging.error(f"Failed to send OTP: {message}")
             return jsonify({'error': message}), 500
             
     except Exception as e:
-        print(f"Error in send_otp: {str(e)}")
+        logging.error(f"Error in send_otp: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/verify-otp', methods=['POST'])
