@@ -26,7 +26,9 @@ export const authApi = {
     api.post<VerifyOTPResponse>('/api/verify-otp', { otp }),
     
   checkHealth: () => 
-    api.get<{status: string, session_active: boolean}>('/health')
+    api.get<{status: string, session_active: boolean}>('/health'),
+  logout: () => 
+    api.post('/api/logout')
 };
 
 // Add interceptor for session handling

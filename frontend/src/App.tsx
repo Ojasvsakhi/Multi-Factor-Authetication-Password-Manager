@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import OTPVerification from './pages/OTPVerification';
@@ -7,7 +6,6 @@ import PasswordVault from './pages/PasswordVault';
 import EncryptionSettings from './pages/EncryptionSettings';
 import { ParticlesBackground } from './components/ParticlesBackground';
 import { HexGrid } from './components/HexGrid';
-import { AIAssistant } from './components/AIAssistant';
 import { RippleEffect } from './components/RippleEffect';
 import { MatrixRain } from './components/MatrixRain';
 
@@ -27,7 +25,6 @@ function App() {
             <Route path="/vault" element={<PasswordVault />} />
             <Route path="/settings" element={<EncryptionSettings />} />
           </Routes>
-          <AIAssistant />
         </div>
       </div>
     </Router>

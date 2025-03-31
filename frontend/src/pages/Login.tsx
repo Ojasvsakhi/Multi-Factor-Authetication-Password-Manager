@@ -1,49 +1,45 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Shield, Mail } from 'lucide-react';
-import { MatrixRain } from '../components/MatrixRain';
-import { HackerTerminal } from '../components/HackerTerminal';
-import { useSound } from '../hooks/useSound';
-import { authApi } from '../services/api';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Shield, Mail } from "lucide-react";
+import { MatrixRain } from "../components/MatrixRain";
+import { HackerTerminal } from "../components/HackerTerminal";
+import { authApi } from "../services/api";
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isHacking, setIsHacking] = useState(false);
   const navigate = useNavigate();
-  const { playSound } = useSound();
+  const [error, setError] = useState(""); // Add this state at the top with other states
 
-  const [error, setError] = useState('');  // Add this state at the top with other states
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsHacking(true);
+    setError(""); // Clear any previous errors
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  playSound('click');
-  setIsHacking(true);
-  setError('');  // Clear any previous errors
-  
-  try {
-    const response = await authApi.sendOTP(email);
-    if (response.data.message) {
-      navigate('/verify', { 
-        state: { 
-          email,
-          message: response.data.message 
-        } 
-      });
+    try {
+      const response = await authApi.sendOTP(email);
+      if (response.data.message) {
+        navigate("/verify", {
+          state: {
+            email,
+            message: response.data.message,
+          },
+        });
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.message || "Failed to send OTP");
+      setIsHacking(false);
     }
-  } catch (error: any) {
-    setError(error.response?.data?.message || 'Failed to send OTP');
-    setIsHacking(false);
-  }
-};
+  };
 
   const handleHackComplete = () => {
-    navigate('/verify');
+    navigate("/verify");
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
       <MatrixRain />
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -59,8 +55,12 @@ const handleSubmit = async (e: React.FormEvent) => {
               >
                 <Shield className="w-8 h-8 text-cyan-400" />
               </motion.div>
-              <h1 className="text-3xl font-bold font-orbitron neon-text">SECURE ACCESS</h1>
-              <p className="mt-2 text-cyan-200/70">Enter your credentials to begin hack sequence</p>
+              <h1 className="text-3xl font-bold font-orbitron neon-text">
+                SECURE ACCESS
+              </h1>
+              <p className="mt-2 text-cyan-200/70">
+                Enter your credentials to begin hack sequence
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">

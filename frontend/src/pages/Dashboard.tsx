@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Key, Shield, Settings, Lock, AlertTriangle, Activity, Clock, Users, RefreshCw } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { useNavigationProtection } from '../hooks/usenavigateprotection';
+import { authApi } from '../services/api';
 const Dashboard: React.FC = () => {
+  useNavigationProtection();
   const navigate = useNavigate();
   const [showNewPasswordModal, setShowNewPasswordModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -56,7 +58,17 @@ const Dashboard: React.FC = () => {
       setBackupInProgress(false);
     }, 2000);
   }
-
+  const handleLogout = async () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      try {
+        await authApi.logout();
+        navigate('/login', { replace: true });
+      } catch (error) {
+        console.error('Logout failed:', error);
+        navigate('/login', { replace: true });
+      }
+    }
+  };
   function handleViewLoginDetails() {
     // Implement login details modal or navigation
     navigate('/settings#security');
@@ -68,9 +80,16 @@ const Dashboard: React.FC = () => {
       navigate(`/vault?search=${encodeURIComponent(searchQuery)}`);
     }
   }
-
+  
   return (
+    
     <div className="min-h-screen p-6">
+      <button 
+        onClick={handleLogout}
+        className="cyber-button"
+      >
+        Logout
+      </button>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

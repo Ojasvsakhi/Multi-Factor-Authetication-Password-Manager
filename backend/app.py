@@ -50,7 +50,7 @@ app.config.update(
     MAIL_PASSWORD=os.getenv('MAIL_PASSWORD'),
     MAIL_USE_TLS=os.getenv('MAIL_USE_TLS') == 'True',
     MAIL_USE_SSL=os.getenv('MAIL_USE_SSL') == 'True',
-    MAIL_DEFAULT_SENDER=('Password Manager', os.getenv('MAIL_DEFAULT_SENDER')),  # Changed this line
+    MAIL_DEFAULT_SENDER=('PassWord Manager', os.getenv('MAIL_DEFAULT_SENDER')),  # Changed this line
     MAIL_MAX_EMAILS=None,
     MAIL_SUPPRESS_SEND=False,
     MAIL_ASCII_ATTACHMENTS=False,
@@ -175,5 +175,9 @@ def verify_otp():
         print(f"Error in verify_otp: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'message': 'Logged out successfully'}), 200
 if __name__ == '__main__':
     app.run(debug=True)
