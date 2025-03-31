@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 
 export const MatrixRain: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number>();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -10,19 +11,20 @@ export const MatrixRain: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // Set canvas size
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resizeCanvas();
 
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()';
     const fontSize = 14;
     const columns = canvas.width / fontSize;
-    const drops: number[] = [];
-
-    for (let i = 0; i < columns; i++) {
-      drops[i] = 1;
-    }
+    const drops: number[] = Array(Math.floor(columns)).fill(1);
 
     const draw = () => {
+      // Set background with slight opacity for trail effect
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -38,19 +40,23 @@ export const MatrixRain: React.FC = () => {
         }
         drops[i]++;
       }
+
+      animationRef.current = requestAnimationFrame(draw);
     };
 
-    const interval = setInterval(draw, 33);
-    const resizeHandler = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    animationRef.current = requestAnimationFrame(draw);
+
+    const handleResize = () => {
+      resizeCanvas();
     };
 
-    window.addEventListener('resize', resizeHandler);
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      clearInterval(interval);
-      window.removeEventListener('resize', resizeHandler);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
