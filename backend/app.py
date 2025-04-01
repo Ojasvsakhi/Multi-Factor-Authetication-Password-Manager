@@ -11,12 +11,10 @@ import os
 from retry import retry
 import logging
 from datetime import timedelta
-
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
-
 # Session configuration
 app.config.update(
     SECRET_KEY=os.getenv('SECRET_KEY'),
@@ -40,8 +38,6 @@ CORS(app,
      expose_headers=["Access-Control-Allow-Origin"],
      methods=["GET", "POST", "OPTIONS"])
 
-
-# Mail configuration
 # Mail configuration
 app.config.update(
     MAIL_SERVER=os.getenv('MAIL_SERVER'),
@@ -94,9 +90,6 @@ def send_otp_email(user_email, otp):
         logging.error(f"Failed to send OTP: {str(e)}")
         raise
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    return jsonify({'status': 'healthy', 'session_active': 'email' in session}), 200
 
 @app.route('/api/send-otp', methods=['POST'])
 def send_otp():
