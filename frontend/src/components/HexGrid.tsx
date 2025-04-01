@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 
 export const HexGrid: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number>();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,7 +17,6 @@ export const HexGrid: React.FC = () => {
     };
 
     resize();
-    window.addEventListener('resize', resize);
 
     const hexSize = 30;
     const hexHeight = hexSize * Math.sqrt(3);
@@ -56,13 +56,22 @@ export const HexGrid: React.FC = () => {
       }
       
       time += 0.02;
-      requestAnimationFrame(animate);
+      animationRef.current = requestAnimationFrame(animate);
     };
 
-    animate();
+    animationRef.current = requestAnimationFrame(animate);
+
+    const handleResize = () => {
+      resize();
+    };
+
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('resize', resize);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
