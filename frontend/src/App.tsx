@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
-import OTPVerification from './pages/OTPVerification';
-import Dashboard from './pages/Dashboard';
-import PasswordVault from './pages/PasswordVault';
-import EncryptionSettings from './pages/EncryptionSettings';
-import { ParticlesBackground } from './components/ParticlesBackground';
-import { HexGrid } from './components/HexGrid';
-import { RippleEffect } from './components/RippleEffect';
-import { MatrixRain } from './components/MatrixRain';
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import PrimaryLogin from "./pages/PrimaryLogin";
+import Login from "./pages/Login";
+import OTPVerification from "./pages/OTPVerification";
+import Register from "./pages/Register"; // ✅ Added Register page import
+import Dashboard from "./pages/Dashboard";
+import PasswordVault from "./pages/PasswordVault";
+import EncryptionSettings from "./pages/EncryptionSettings";
+import { ParticlesBackground } from "./components/ParticlesBackground";
+import { HexGrid } from "./components/HexGrid";
+import { RippleEffect } from "./components/RippleEffect";
+import { MatrixRain } from "./components/MatrixRain";
 
 function App() {
   // Always show effects - removed toggle capability to prevent accidental hiding
@@ -37,8 +39,10 @@ function App() {
         {/* Content Layer - higher z-index ensures content stays above backgrounds */}
         <div className="relative z-10 min-h-screen">
           <Routes>
-            <Route path="/" element={<Login />} />
+            <Route path="/" element={<PrimaryLogin />} />
+            <Route path="/otp-login" element={<Login />} />
             <Route path="/verify" element={<OTPVerification />} />
+            <Route path="/register" element={<Register />} /> {/* ✅ Added route for Register */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/vault" element={<PasswordVault />} />
             <Route path="/settings" element={<EncryptionSettings />} />
