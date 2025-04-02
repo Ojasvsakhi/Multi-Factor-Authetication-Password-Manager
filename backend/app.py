@@ -116,11 +116,12 @@ def send_otp():
             
             return jsonify({
                 'message': 'OTP sent successfully',
-                'email': email
+                'email': email,
+                'success': True
             }), 200
         else:
             logging.error(f"Failed to send OTP: {message}")
-            return jsonify({'error': message}), 500
+            return jsonify({'error': message,success: False}), 500
             
     except Exception as e:
         logging.error(f"Error in send_otp: {str(e)}")
@@ -130,42 +131,28 @@ def send_otp():
 def verify_otp():
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-
-        entered_otp = str(data.get('otp'))
-        if not entered_otp:
+        if not data or 'otp' not in data:
             return jsonify({'error': 'OTP is required'}), 400
 
-        print(f"Current session: {dict(session)}")
+        entered_otp = str(data['otp'])
+        email, stored_otp, otp_expires = session.get('email'), session.get('otp'), session.get('otp_expires')
 
-        email = session.get('email')
-        stored_otp = session.get('otp')
-        otp_expires = session.get('otp_expires')
-        
         if not all([email, stored_otp, otp_expires]):
             return jsonify({'error': 'No active OTP session'}), 400
-        
+
         if time.time() > otp_expires:
-            session.pop('email', None)
-            session.pop('otp', None)
-            session.pop('otp_expires', None)
+            session.clear()
             return jsonify({'error': 'OTP has expired'}), 400
-        
+
         if entered_otp == stored_otp:
             session['otp_verified'] = True
             session.pop('otp', None)
             session.pop('otp_expires', None)
-            return jsonify({
-                'status': 'success',
-                'message': 'OTP verified successfully',
-                'email': email
-            }), 200
-            
+            return jsonify({'status': 'success', 'message': 'OTP verified successfully', 'email': email}), 200
+
         return jsonify({'error': 'Invalid OTP'}), 400
 
     except Exception as e:
-        print(f"Error in verify_otp: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/api/logout', methods=['POST'])

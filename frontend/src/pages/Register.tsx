@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Key } from "lucide-react";
-import { authApi } from "../services/api"; // Replace with your actual API service
+import { authApi } from "../services/api";
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -28,8 +28,8 @@ const Register: React.FC = () => {
   const handleVerifyOTP = async () => {
     setError("");
     try {
-      const response = await authApi.verifyOTP(email, otp); // Mock API call
-      if (response.data.verified) {
+      const response = await authApi.verifyOTP({email: email,otp: otp}); // Mock API call
+      if (response.data.status==="success") {
         navigate("/dashboard"); // Navigate to dashboard after successful registration
       }
     } catch (err: any) {

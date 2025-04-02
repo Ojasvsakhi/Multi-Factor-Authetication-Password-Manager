@@ -10,6 +10,7 @@ const api = axios.create({
 interface OTPResponse {
   message: string;
   email: string;
+  success: number;
 }
 
 interface VerifyOTPResponse {
@@ -17,13 +18,16 @@ interface VerifyOTPResponse {
   message: string;
   email: string;
 }
-
+interface VerifyOTPRequest {
+  otp: string;
+  email?: string;
+}
 export const authApi = {
   sendOTP: (email: string) => 
     api.post<OTPResponse>('/api/send-otp', { email }),
     
-  verifyOTP: (otp: string) => 
-    api.post<VerifyOTPResponse>('/api/verify-otp', { otp }),
+  verifyOTP: (data: VerifyOTPRequest) => 
+    api.post<VerifyOTPResponse>('/api/verify-otp', { data }),
     
   checkHealth: () => 
     api.get<{status: string, session_active: boolean}>('/health'),
