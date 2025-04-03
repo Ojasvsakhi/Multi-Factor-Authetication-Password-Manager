@@ -28,14 +28,18 @@ const Register: React.FC = () => {
   const handleVerifyOTP = async () => {
     setError("");
     try {
-      const response = await authApi.verifyOTP({email: email,otp: otp}); // Mock API call
-      if (response.data.status==="success") {
-        navigate("/dashboard"); // Navigate to dashboard after successful registration
+      const response = await authApi.verifyOTP(otp);
+  
+      if (response.data.status === "success") {
+        navigate("/dashboard");
+      } else {
+        setError(response.data.error || "Invalid OTP.");
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid OTP.");
+      setError(err.response?.data?.error || "Something went wrong.");
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">

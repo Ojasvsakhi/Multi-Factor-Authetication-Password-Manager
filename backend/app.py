@@ -132,12 +132,13 @@ def verify_otp():
     try:
         data = request.get_json()
         if not data or 'otp' not in data:
-            return jsonify({'error': 'OTP is required'}), 400
+            return jsonify({'error': 'OTP is required'}), 400  # Remove "email" from error message
 
         entered_otp = str(data['otp'])
-        email, stored_otp, otp_expires = session.get('email'), session.get('otp'), session.get('otp_expires')
+        email = session.get('email')  # Retrieve email from session
+        stored_otp, otp_expires = session.get('otp'), session.get('otp_expires')
 
-        if not all([email, stored_otp, otp_expires]):
+        if not all([email, stored_otp, otp_expires]):  # Include `email` in the check
             return jsonify({'error': 'No active OTP session'}), 400
 
         if time.time() > otp_expires:
@@ -147,14 +148,15 @@ def verify_otp():
         if entered_otp == stored_otp:
             session['otp_verified'] = True
             session.pop('otp', None)
-            session.pop('otp_expires', None)
+            session.pop('otp_expires', None) 
             return jsonify({'status': 'success', 'message': 'OTP verified successfully', 'email': email}), 200
 
         return jsonify({'error': 'Invalid OTP'}), 400
 
     except Exception as e:
+        print(f"Error: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-
+    
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()

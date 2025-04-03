@@ -14,23 +14,23 @@ interface OTPResponse {
 }
 
 interface VerifyOTPResponse {
-  status: string;
-  message: string;
-  email: string;
+  status?: string;  // Only present in success responses
+  message?: string; // Only present in success responses
+  email?: string;   // Only present in success responses
+  error?: string;   // Only present in error responses
 }
-interface VerifyOTPRequest {
-  otp: string;
-  email?: string;
-}
+
 export const authApi = {
   sendOTP: (email: string) => 
     api.post<OTPResponse>('/api/send-otp', { email }),
     
-  verifyOTP: (data: VerifyOTPRequest) => 
-    api.post<VerifyOTPResponse>('/api/verify-otp', { data }),
+  verifyOTP: (otp: string) => 
+    api.post<VerifyOTPResponse>('/api/verify-otp', { otp }),
     
   checkHealth: () => 
     api.get<{status: string, session_active: boolean}>('/health'),
+  verifyUser: (user: { username: string, masterkey: string }) =>
+    api.post('/api/verify-user', user),
   logout: () => 
     api.post('/api/logout')
 };

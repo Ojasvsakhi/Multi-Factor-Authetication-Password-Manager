@@ -40,7 +40,7 @@ function App() {
         <div className="relative z-10 min-h-screen">
           <Routes>
             <Route path="/" element={<PrimaryLogin />} />
-            <Route path="/otp-login" element={<Login />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/verify" element={<OTPVerification />} />
             <Route path="/register" element={<Register />} /> {/* ✅ Added route for Register */}
             <Route path="/dashboard" element={<Dashboard />} />
