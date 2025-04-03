@@ -33,11 +33,11 @@ Session(app)
 # CORS configuration
 CORS(app, 
      supports_credentials=True, 
-     origins=["http://localhost:5173", "https://cryptknight.vercel.app"],
-     allow_headers=["Content-Type"],
-     expose_headers=["Access-Control-Allow-Origin"],
+     origins=["http://localhost:5173", 
+             "https://cryptknight.vercel.app"],
+     allow_headers=["Content-Type", "Authorization"],
+     expose_headers=["Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"],
      methods=["GET", "POST", "OPTIONS"])
-
 # Mail configuration
 app.config.update(
     MAIL_SERVER=os.getenv('MAIL_SERVER'),
@@ -53,6 +53,20 @@ app.config.update(
     MAIL_TIMEOUT=30  # Added timeout
 )
 
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin')
+    allowed_origins = [
+        "http://localhost:5173",
+        "https://cryptknight.vercel.app"]
+    if origin in allowed_origins:
+        response.headers.update({
+            'Access-Control-Allow-Origin': origin,
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        })
+    return response
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 
