@@ -16,17 +16,15 @@ load_dotenv()
 
 app = Flask(__name__)
 # Session configuration
-# Session configuration
 app.config.update(
     SECRET_KEY=os.getenv('SECRET_KEY'),
     SESSION_TYPE='filesystem',
     SESSION_FILE_DIR='flask_session',
     SESSION_PERMANENT=True,
-    PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),  # Increased session lifetime
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=5),
     SESSION_COOKIE_SECURE=True,
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE='None',
-    SESSION_COOKIE_DOMAIN='.onrender.com'  # Add this line
+    SESSION_COOKIE_SAMESITE='None'
 )
 
 # Initialize Flask-Session
@@ -35,32 +33,11 @@ Session(app)
 # CORS configuration
 CORS(app, 
      supports_credentials=True, 
-     origins=[
-         "http://localhost:5173",
-         "https://cryptknight.vercel.app",
-         "https://cryptoknight-1hddg7ver-ojasvsakhis-projects.vercel.app"
-     ],
-     allow_headers=["Content-Type", "Authorization"],
-     expose_headers=["Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"],
-     methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"])
+     origins=["http://localhost:5173", "https://cryptknight.vercel.app"],
+     allow_headers=["Content-Type"],
+     expose_headers=["Access-Control-Allow-Origin"],
+     methods=["GET", "POST", "OPTIONS"])
 
-@app.after_request
-def after_request(response):
-    origin = request.headers.get('Origin')
-    allowed_origins = [
-        "http://localhost:5173",
-        "https://cryptknight.vercel.app",
-        "https://cryptoknight-1hddg7ver-ojasvsakhis-projects.vercel.app"
-    ]
-    
-    if origin in allowed_origins:
-        response.headers.update({
-            'Access-Control-Allow-Origin': origin,
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS,PUT,DELETE',
-            'Access-Control-Allow-Credentials': 'true'
-        })
-    return response
 # Mail configuration
 app.config.update(
     MAIL_SERVER=os.getenv('MAIL_SERVER'),
@@ -153,29 +130,29 @@ def send_otp():
 @app.route('/api/verify-otp', methods=['POST'])
 def verify_otp():
     try:
+        # Log the incoming request data and session state
+        logging.info(f"Session before verification: {dict(session)}")
         data = request.get_json()
-        if not data:
-            logging.error("No data received in verify_otp")
-            return jsonify({'error': 'No data provided'}), 400
+        logging.info(f"Received verification request: {data}")
 
-        entered_otp = str(data.get('otp', ''))
-        if not entered_otp:
-            logging.error("No OTP provided")
+        if not data or 'otp' not in data:
             return jsonify({'error': 'OTP is required'}), 400
 
-        # Log session data for debugging
-        logging.info(f"Session data: {dict(session)}")
-        
+        entered_otp = str(data['otp'])
         email = session.get('email')
         stored_otp = session.get('otp')
         otp_expires = session.get('otp_expires')
 
+        # Log the retrieved session data
+        logging.info(f"Retrieved from session - Email: {email}, Stored OTP: {stored_otp}, Expires: {otp_expires}")
+
         if not all([email, stored_otp, otp_expires]):
-            logging.error(f"Missing session data. Email: {email}, OTP: {'Present' if stored_otp else 'Missing'}")
-            return jsonify({'error': 'No active OTP session'}), 400
+            return jsonify({'error': 'No active OTP session', 
+                          'debug': {'email': bool(email), 
+                                  'otp': bool(stored_otp), 
+                                  'expires': bool(otp_expires)}}), 400
 
         if time.time() > otp_expires:
-            logging.warning("OTP expired")
             session.clear()
             return jsonify({'error': 'OTP has expired'}), 400
 
@@ -183,19 +160,24 @@ def verify_otp():
             session['otp_verified'] = True
             session.pop('otp', None)
             session.pop('otp_expires', None)
+            
+            # Log successful verification
             logging.info(f"OTP verified successfully for {email}")
+            
             return jsonify({
                 'status': 'success',
                 'message': 'OTP verified successfully',
                 'email': email
             }), 200
 
+        # Log failed verification
         logging.warning(f"Invalid OTP attempt for {email}")
         return jsonify({'error': 'Invalid OTP'}), 400
 
     except Exception as e:
         logging.error(f"Error in verify_otp: {str(e)}", exc_info=True)
-        return jsonify({'error': 'Internal server error'}), 500    
+        return jsonify({'error': 'Internal server error'}), 500
+
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
