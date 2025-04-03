@@ -33,7 +33,7 @@ Session(app)
 # CORS configuration
 CORS(app, 
      supports_credentials=True, 
-     origins=["http://localhost:5173", "https://cryptknight.vercel.app"],
+     origins=["http://localhost:5173", "https://cryptknight.vercel.app", "cryptoknight-1hddg7ver-ojasvsakhis-projects.vercel.app"],
      allow_headers=["Content-Type"],
      expose_headers=["Access-Control-Allow-Origin"],
      methods=["GET", "POST", "OPTIONS"])
