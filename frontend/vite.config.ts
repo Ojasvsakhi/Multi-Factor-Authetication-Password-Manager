@@ -10,7 +10,7 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
         name: 'Crypto Knight',
-        short_name: 'CryKight',
+        short_name: 'CryKnight',
         description: 'Secure Password Manager',
         theme_color: '#111827',
         background_color: '#111827',
