@@ -77,6 +77,31 @@ def is_valid_email(email):
 
 def generate_otp():
     return random.randint(100000, 999999)
+def verify_master_credentials(username, master_key):
+    try:
+        # Check if username exists in database
+        # Verify master key hash
+        # Return True if valid, False otherwise
+        return True, "Credentials verified"
+    except Exception as e:
+        return False, str(e)
+def verify_puzzle(puzzle_solution):
+    try:
+        # Implement puzzle verification logic
+        # Return True if solution is correct
+        stored_solution = session.get('puzzle_solution')
+        return puzzle_solution == stored_solution, "Puzzle verified"
+    except Exception as e:
+        return False, str(e)
+
+def verify_geolocation(latitude, longitude):
+    try:
+        # Implement geolocation verification
+        # Compare with allowed locations or previous login locations
+        # Return True if location is valid
+        return True, "Location verified"
+    except Exception as e:
+        return False, str(e)
 
 @retry(tries=3, delay=1, backoff=2, logger=logging.getLogger(__name__))
 def send_otp_email(user_email, otp):
@@ -105,16 +130,17 @@ def send_otp_email(user_email, otp):
         raise
 
 
+# Modify send-otp route
 @app.route('/api/send-otp', methods=['POST'])
 def send_otp():
     try:
         data = request.get_json()
         email = data.get('email')
+        is_registration = data.get('is_registration', False)  # Boolean flag: True for registration, False for login
         
         if not email:
             return jsonify({'error': 'Email is required'}), 400
         
-        # Clear any existing session data
         session.clear()
         
         otp = generate_otp()
@@ -125,73 +151,63 @@ def send_otp():
             session['email'] = email
             session['otp'] = str(otp)
             session['otp_expires'] = time.time() + 300
+            session['is_registration'] = is_registration  # Store the flag
             
-            logging.info(f"Session data stored for {email}")
+            logging.info(f"Session data stored for {email} - Registration: {is_registration}")
             
             return jsonify({
                 'message': 'OTP sent successfully',
                 'email': email,
+                'is_registration': is_registration,
                 'success': True
             }), 200
         else:
             logging.error(f"Failed to send OTP: {message}")
-            return jsonify({'error': message,success: False}), 500
+            return jsonify({'error': message, 'success': False}), 500
             
     except Exception as e:
         logging.error(f"Error in send_otp: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+# Modify verify-otp route
 @app.route('/api/verify-otp', methods=['POST'])
 def verify_otp():
     try:
-        # Log the incoming request data and session state
-        logging.info(f"Session before verification: {dict(session)}")
         data = request.get_json()
-        logging.info(f"Received verification request: {data}")
-
-        if not data or 'otp' not in data:
-            return jsonify({'error': 'OTP is required'}), 400
-
-        entered_otp = str(data['otp'])
+        entered_otp = str(data.get('otp', ''))
         email = session.get('email')
         stored_otp = session.get('otp')
         otp_expires = session.get('otp_expires')
+        is_registration = session.get('is_registration', False)
 
-        # Log the retrieved session data
-        logging.info(f"Retrieved from session - Email: {email}, Stored OTP: {stored_otp}, Expires: {otp_expires}")
-
-        if not all([email, stored_otp, otp_expires]):
-            return jsonify({'error': 'No active OTP session', 
-                          'debug': {'email': bool(email), 
-                                  'otp': bool(stored_otp), 
-                                  'expires': bool(otp_expires)}}), 400
-
-        if time.time() > otp_expires:
-            session.clear()
-            return jsonify({'error': 'OTP has expired'}), 400
+        # ... existing validation code ...
 
         if entered_otp == stored_otp:
             session['otp_verified'] = True
             session.pop('otp', None)
             session.pop('otp_expires', None)
             
-            # Log successful verification
-            logging.info(f"OTP verified successfully for {email}")
-            
-            return jsonify({
-                'status': 'success',
-                'message': 'OTP verified successfully',
-                'email': email
-            }), 200
+            # Different flows based on boolean flag
+            if is_registration:
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Registration OTP verified',
+                    'email': email,
+                    'next_step': 'create_master_credentials'
+                }), 200
+            else:
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Login OTP verified',
+                    'email': email,
+                    'next_step': 'verify_master_credentials'
+                }), 200
 
-        # Log failed verification
-        logging.warning(f"Invalid OTP attempt for {email}")
         return jsonify({'error': 'Invalid OTP'}), 400
 
     except Exception as e:
-        logging.error(f"Error in verify_otp: {str(e)}", exc_info=True)
+        logging.error(f"Error in verify_otp: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()

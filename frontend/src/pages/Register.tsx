@@ -9,15 +9,21 @@ const Register: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState(1); // 1 = Enter Email, 2 = Enter OTP
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
   // Handle email submission (send OTP)
   const handleSendOTP = async () => {
     setError("");
+    setSuccess("");
     try {
-      const response = await authApi.sendOTP(email); // Mock API call
+      const response = await authApi.sendOTP({email: email, isRegister: true}); // Mock API call
       if (response.data.success) {
-        setStep(2); // Move to OTP input step
+        setSuccess("OTP sent successfully!"); // Set success message
+        setTimeout(() => {
+          setSuccess(""); // Clear success message after 3 seconds
+          setStep(2); // Move to OTP input step
+        }, 1000);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to send OTP.");
@@ -31,7 +37,17 @@ const Register: React.FC = () => {
       const response = await authApi.verifyOTP(otp);
   
       if (response.data.status === "success") {
-        navigate("/dashboard");
+        // Print success message
+        setSuccess(`${response.data.message}! Redirecting to ${response.data.next_step}...`);
+        setTimeout(() => {
+          navigate("/dashboard", {
+            state: {
+              is_registration: true,
+              email: email,
+              next_step: response.data.next_step
+            }
+          });
+        }, 2000);
       } else {
         setError(response.data.error || "Invalid OTP.");
       }
@@ -63,6 +79,13 @@ const Register: React.FC = () => {
             {step === 1 ? "Enter your email to receive OTP" : "Enter the OTP sent to your email"}
           </p>
         </div>
+
+        {/* Add success message display */}
+        {success && (
+          <div className="mb-4 p-3 bg-green-500/20 border border-green-500 rounded-md">
+            <p className="text-green-400 text-center">{success}</p>
+          </div>
+        )}
 
         {step === 1 ? (
           // Step 1: Enter Email
@@ -113,7 +136,6 @@ const Register: React.FC = () => {
         </div>
       </motion.div>
     </div>
-  );
+  );  
 };
-
 export default Register;

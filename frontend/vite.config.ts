@@ -12,8 +12,8 @@ export default defineConfig({
         name: 'Crypto Knight',
         short_name: 'CryptoKnight',
         description: 'Secure Password Manager',
-        theme_color: '#111827',
-        background_color: '#111827',
+        theme_color: '#111111',
+        background_color: '#111111',
         display: 'standalone',
         icons: [
           {

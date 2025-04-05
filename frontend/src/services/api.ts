@@ -10,19 +10,24 @@ const api = axios.create({
 interface OTPResponse {
   message: string;
   email: string;
-  success: number;
+  success: boolean;
+  is_registration?: boolean;
 }
 
 interface VerifyOTPResponse {
-  status?: string;  // Only present in success responses
-  message?: string; // Only present in success responses
-  email?: string;   // Only present in success responses
-  error?: string;   // Only present in error responses
+  status?: string;
+  message?: string;
+  email?: string; 
+  error?: string; 
+  next_step?: string;
 }
-
+interface OTPSend{
+  email: string;
+  isRegister: boolean;
+}
 export const authApi = {
-  sendOTP: (email: string) => 
-    api.post<OTPResponse>('/api/send-otp', { email }),
+  sendOTP: (data: OTPSend) => 
+    api.post<OTPResponse>('/api/send-otp',data),
     
   verifyOTP: (otp: string) => 
     api.post<VerifyOTPResponse>('/api/verify-otp', { otp }),
@@ -32,7 +37,7 @@ export const authApi = {
   verifyUser: (user: { username: string, masterkey: string }) =>
     api.post('/api/verify-user', user),
   logout: () => 
-    api.post('/api/logout')
+    api.post('/api/logout'),
 };
 
 // Add interceptor for session handling

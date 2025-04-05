@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import PrimaryLogin from "./pages/PrimaryLogin";
-import Login from "./pages/Login";
-import OTPVerification from "./pages/OTPVerification";
+import Login from "./Authentications/Email";
+import OTPVerification from "./pages/EmailVerification";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import PasswordVault from "./pages/PasswordVault";
