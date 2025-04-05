@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Cyber Vault',
-        short_name: 'Vault',
+        name: 'Crypto Knight',
+        short_name: 'CryKight',
         description: 'Secure Password Manager',
         theme_color: '#111827',
         background_color: '#111827',
