@@ -6,7 +6,8 @@ import { authApi } from '../services/api';
 
 const OTPVerification: React.FC = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
@@ -15,9 +16,12 @@ const OTPVerification: React.FC = () => {
   const message = location.state?.message;
   const isAuthenticated = location.state?.isAuthenticated;
   const is_registration = location.state?.is_registration;
+
   useEffect(() => {
-    setError("Email Not given");
-    if (!email) navigate('/');
+    if (!email) {
+      setError('Email not provided.');
+      navigate('/');
+    }
   }, [email, navigate]);
 
   const handleChange = (index: number, value: string) => {
@@ -25,7 +29,7 @@ const OTPVerification: React.FC = () => {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
-      
+
       if (value && index < 5) {
         inputRefs.current[index + 1]?.focus();
       }
@@ -40,39 +44,41 @@ const OTPVerification: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setVerifying(true);
     setError('');
 
     try {
       const otpString = otp.join('');
       const response = await authApi.verifyOTP(otpString);
       if (response.data.status === 'success') {
-        navigate('/captcha', {state: 
-          {
-          email,
-          isAuthenticated,
-          is_registration,
-          message: response.data.message
-          }
-        }); // Captcha
+        navigate('/captcha', {
+          state: {
+            email,
+            isAuthenticated,
+            is_registration,
+            message: response.data.message,
+          },
+        });
+      } else {
+        setError('Invalid OTP');
       }
     } catch (error: any) {
       setError(error.response?.data?.message || 'Invalid OTP');
     } finally {
-      setLoading(false);
+      setVerifying(false);
     }
   };
 
   const handleResendOTP = async () => {
-    setLoading(true);
+    setResending(true);
     setError('');
     try {
-      const response = await authApi.sendOTP(email);
+      await authApi.sendOTP(email);
       setError('OTP resent successfully');
     } catch (error: any) {
       setError(error.response?.data?.message || 'Failed to resend OTP');
     } finally {
-      setLoading(false);
+      setResending(false);
     }
   };
 
@@ -85,8 +91,8 @@ const OTPVerification: React.FC = () => {
       >
         <div className="flex flex-col items-center mb-8">
           <motion.div
-            animate={{ 
-              boxShadow: ['0 0 20px #22d3ee', '0 0 10px #22d3ee', '0 0 20px #22d3ee']
+            animate={{
+              boxShadow: ['0 0 20px #22d3ee', '0 0 10px #22d3ee', '0 0 20px #22d3ee'],
             }}
             transition={{ duration: 2, repeat: Infinity }}
             className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mb-4"
@@ -94,12 +100,8 @@ const OTPVerification: React.FC = () => {
             <Lock className="w-8 h-8 text-cyan-400" />
           </motion.div>
           <h1 className="text-3xl font-bold font-orbitron neon-text">VERIFY OTP</h1>
-          <p className="mt-2 text-cyan-200/70">
-            Enter the code sent to {email}
-          </p>
-          {message && (
-            <p className="mt-2 text-green-400 text-sm">{message}</p>
-          )}
+          <p className="mt-2 text-cyan-200/70">Enter the code sent to {email}</p>
+          {message && <p className="mt-2 text-green-400 text-sm">{message}</p>}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -114,7 +116,7 @@ const OTPVerification: React.FC = () => {
                 onChange={(e) => handleChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 className="w-12 h-14 text-center text-2xl font-orbitron cyber-input"
-                disabled={loading}
+                disabled={verifying || resending}
               />
             ))}
           </div>
@@ -124,29 +126,29 @@ const OTPVerification: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className={`text-sm text-center ${
-                error.includes('success') ? 'text-green-400' : 'text-red-400'
+                error.toLowerCase().includes('success') ? 'text-green-400' : 'text-red-400'
               }`}
             >
               {error}
             </motion.p>
           )}
 
-          <button 
+          <button
             type="submit"
             className="cyber-button w-full"
-            disabled={loading || otp.some(digit => !digit)}
+            disabled={verifying || otp.some((digit) => !digit)}
           >
-            {loading ? 'Verifying...' : 'Verify OTP'}
+            {verifying ? 'Verifying...' : 'Verify OTP'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <button 
+          <button
             onClick={handleResendOTP}
-            disabled={loading}
+            disabled={resending}
             className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Sending...' : 'Resend Code'}
+            {resending ? 'Sending...' : 'Resend Code'}
           </button>
         </div>
       </motion.div>

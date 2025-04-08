@@ -8,36 +8,38 @@ const PrimaryLogin: React.FC = () => {
   const [username, setUsername] = useState("");
   const [masterkey, setMasterkey] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false); // Added loading state
+  const navigate = useNavigate();
+
   const handleclick = () => {
-    const response =  authApi.delete_users();
+    const response = authApi.delete_users();
     console.log("Database users deleted successfully");
-  }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setLoading(true); // Set loading to true when authentication starts
     try {
-      const response = await authApi.verifyUser({ 
-        username: username, 
-        masterkey: masterkey, 
-        is_registration: false 
+      const response = await authApi.verifyUser({
+        username: username,
+        masterkey: masterkey,
+        is_registration: false,
       });
-  
+
       if (response.data.status === "success") {
-        // Set success message
         setSuccess("Login successful!");
-      
         setTimeout(() => {
-          navigate("/email", { 
+          navigate("/email", {
             replace: true,
             state: {
               username,
               masterkey,
               is_authentication: true,
               is_registration: false,
-            }
+            },
           });
         }, 1000);
       } else {
@@ -45,6 +47,8 @@ const PrimaryLogin: React.FC = () => {
       }
     } catch (error: any) {
       setError(error.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false); // Set loading to false after authentication completes
     }
   };
 
@@ -108,19 +112,21 @@ const PrimaryLogin: React.FC = () => {
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
           {success && <p className="text-green-500 text-sm">{success}</p>}
-          <button type="submit" className="cyber-button w-full">
-            Authenticate
+          <button type="submit" className="cyber-button w-full" disabled={loading}>
+            {loading ? "Authenticating..." : "Authenticate"}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-cyan-200/50">Secure Access</p>
           <p className="mt-4 text-sm text-cyan-200">
-            Don't have an account? 
-            <button 
-              className="text-cyan-400 cursor-pointer hover:underline" 
+            Don't have an account?{" "}
+            <button
+              className="text-cyan-400 cursor-pointer hover:underline"
               onClick={handleRegisterClick}
-            > Register</button>
+            >
+              Register
+            </button>
           </p>
         </div>
       </motion.div>

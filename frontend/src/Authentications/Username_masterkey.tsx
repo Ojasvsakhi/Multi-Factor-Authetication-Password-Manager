@@ -3,9 +3,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Lock, User, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { authApi } from "../services/api";
+
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{4,20}$/;
-const MASTERKEY_REGEX =
-  /^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%?&]{8,}$/;
+const MASTERKEY_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
 const generateMasterKey = (): string => {
   const lowercase = "abcdefghijklmnopqrstuvwxyz";
@@ -14,29 +14,24 @@ const generateMasterKey = (): string => {
   const symbols = "@$!%*?&";
 
   let masterkey = "";
-
-  // Ensure at least one of each required character type
   masterkey += lowercase[Math.floor(Math.random() * lowercase.length)];
   masterkey += uppercase[Math.floor(Math.random() * uppercase.length)];
   masterkey += numbers[Math.floor(Math.random() * numbers.length)];
   masterkey += symbols[Math.floor(Math.random() * symbols.length)];
 
-  // Fill remaining length with random characters
   const allChars = lowercase + uppercase + numbers + symbols;
   while (masterkey.length < 12) {
     masterkey += allChars[Math.floor(Math.random() * allChars.length)];
   }
 
-  // Shuffle the masterkey
-  return masterkey
-    .split("")
-    .sort(() => Math.random() - 0.5)
-    .join("");
+  return masterkey.split("").sort(() => Math.random() - 0.5).join("");
 };
+
 const Username_masterkey: React.FC = () => {
   const [username, setUsername] = useState("");
   const [masterkey, setMasterkey] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
@@ -44,6 +39,7 @@ const Username_masterkey: React.FC = () => {
   const is_authentication = location.state?.is_authentication || false;
   const [usernameError, setUsernameError] = useState("");
   const [masterkeyError, setMasterkeyError] = useState("");
+
   const validateUsername = (value: string): boolean => {
     if (!USERNAME_REGEX.test(value)) {
       setUsernameError(
@@ -65,6 +61,7 @@ const Username_masterkey: React.FC = () => {
     setMasterkeyError("");
     return true;
   };
+
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setUsername(value);
@@ -82,12 +79,22 @@ const Username_masterkey: React.FC = () => {
     setMasterkey(suggested);
     validateMasterkey(suggested);
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!validateUsername(username) || !validateMasterkey(masterkey)) {
+    setLoading(true);
+
+    const isUsernameValid = validateUsername(username);
+    const isMasterkeyValid = validateMasterkey(masterkey);
+
+    if (!isUsernameValid || !isMasterkeyValid) {
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
       return;
     }
+
     try {
       const response = await authApi.verifyUser({
         username,
@@ -96,33 +103,27 @@ const Username_masterkey: React.FC = () => {
       });
 
       if (is_registration) {
-        // For registration flow
         navigate("/puzzle", {
-          state: {
-            is_registration,
-            username,
-            masterkey,
-          },
+          state: { is_registration, username, masterkey },
         });
+      } else if (response.data.status === "success") {
+        navigate("/email");
       } else {
-        // For login flow
-        if (response.data.status === "success") {
-          navigate("/email");
-        } else {
-          setError("Invalid username or master key. Please try again.");
-        }
+        setError("Invalid username or master key. Please try again.");
       }
     } catch (error: any) {
       if (error.response?.status === 401) {
         setError("Authentication failed. Please verify your credentials.");
       } else {
         setError(
-          error.response?.data?.message ||
-            "An error occurred. Please try again."
+          error.response?.data?.message || "An error occurred. Please try again."
         );
       }
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative">
       <motion.div
@@ -199,8 +200,8 @@ const Username_masterkey: React.FC = () => {
                   )}
                 </button>
               </div>
-              {is_registration &&(
-                <button 
+              {is_registration && (
+                <button
                   type="button"
                   onClick={handleSuggestMasterkey}
                   className="cyber-button-small flex items-center gap-2"
@@ -222,8 +223,14 @@ const Username_masterkey: React.FC = () => {
             </div>
           )}
 
-          <button type="submit" className="cyber-button w-full">
-            {is_registration
+          <button
+            type="submit"
+            className="cyber-button w-full"
+            disabled={loading}
+          >
+            {loading
+              ? "Authenticating..."
+              : is_registration
               ? "Continue"
               : is_authentication
               ? "Verify Access"
