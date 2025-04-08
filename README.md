@@ -8,31 +8,53 @@ A secure password management system with multi-factor authentication, built usin
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── DashBoard.jsx
-│   │   │   ├── Login.jsx
-│   │   │   ├── OtpFlow.jsx
-│   │   │   ├── PasswordVault.jsx
-│   │   │   └── EncryptionSettings.jsx
-│   │   ├── App.css
-│   │   ├── App.jsx
+│   │   │   ├── AIAssistant.tsx
+│   │   │   ├── GlitchText.tsx
+│   │   │   ├── HackerTerminal.tsx
+│   │   │   ├── HexGrid.tsx
+│   │   │   ├── HolographicScene.tsx
+│   │   │   ├── MatrixRain.tsx
+│   │   │   ├── ParticlesBackground.tsx
+│   │   │   ├── PasswordStrengthMeter.tsx
+│   │   │   ├── RippleEffect.tsx
+│   │   │   ├── SecurityChart.tsx
+│   │   │   └── index.tsx
+│   │   ├── hooks/
+│   │   │   ├── useSound.ts
+│   │   │   └── usenavigateprotection.ts
+│   │   ├── pages/
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── EmailVerification.tsx
+│   │   │   ├── EncryptionSettings.tsx
+│   │   │   ├── PasswordVault.tsx
+│   │   │   ├── PrimaryLogin.tsx
+│   │   │   └── Register.tsx
+│   │   ├── Authentications/
+│   │   │   ├── Email.tsx
+│   │   │   └── Username_masterkey.tsx
+│   │   ├── config/
+│   │   │   └── api.ts
+│   │   ├── App.tsx
 │   │   ├── index.css
-│   │   └── main.jsx
+│   │   ├── main.tsx
+│   │   └── vite-env.d.ts
 │   ├── public/
-│   ├── package.json
-│   └── vite.config.js
-└── backend/
-    ├── app.py
-    ├── models/
-    │   ├── __init__.py
-    │   ├── user.py
-    │   └── password.py
-    ├── utils/
-    │   ├── encryption.py
-    │   └── validators.py
-    ├── requirements.txt
-    ├── .env
-    └── static/
-        └── images/
+  - Database models
+  - Password vault
+  - Encryption systems
+│   │   └── images/
+│   ├── database.py
+│   ├── app.py
+│   ├── wsgi.py
+  - Database models
+  - Password vault
+  - Encryption systems
+│   ├── requirements.txt
+│   ├── .env
+│   └── flask_session/
+├── .gitignore
+├── .gitattributes
+└── README.md
 ```
 
 ## Features
