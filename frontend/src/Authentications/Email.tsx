@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect} from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, Mail } from "lucide-react";
 import { MatrixRain } from "../components/MatrixRain";
@@ -10,18 +10,29 @@ const Email: React.FC = () => {
   const [isHacking, setIsHacking] = useState(false);
   const navigate = useNavigate();
   const [error, setError] = useState(""); // Add this state at the top with other states
-
+  const location = useLocation();
+  const is_authenticated = location.state?.is_authenticated || false;
+  const is_registration = location.state?.is_registration||false;
+  const username = location.state?.username;
+  const masterkey = location.state?.masterkey;
+  useEffect(() => {
+    if (!username || !masterkey) {
+      navigate('/login', { replace: true });
+    }
+  }, [username, masterkey, navigate]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsHacking(true);
     setError(""); // Clear any previous errors
 
     try {
-      const response = await authApi.sendOTP({email: email, isRegister: true});
-      if (response.data.message) {
+      const response = await authApi.sendOTP({email: email, isRegister:is_registration});
+      if (response.data.success) {
         navigate("/verify", {
           state: {
             email,
+            is_registration,
+            is_authenticated,
             message: response.data.message,
           },
         });
@@ -55,11 +66,11 @@ const Email: React.FC = () => {
               >
                 <Shield className="w-8 h-8 text-cyan-400" />
               </motion.div>
-              <h1 className="text-3xl font-bold font-orbitron neon-text">
-                SECURE ACCESS
+              <h1 className="text-2xl font-bold font-orbitron neon-text">
+                EMAIL AUTHENTICATION 
               </h1>
               <p className="mt-2 text-cyan-200/70">
-                Enter your credentials to begin hack sequence
+                Enter your registered email to proceed
               </p>
             </div>
 
@@ -77,15 +88,9 @@ const Email: React.FC = () => {
               </div>
 
               <button type="submit" className="cyber-button w-full">
-                Initialize Hack Sequence
+                SEND OTP
               </button>
             </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-cyan-200/50">
-                Protected by Quantum Encryption™
-              </p>
-            </div>
           </>
         ) : (
           <HackerTerminal onComplete={handleHackComplete} />
@@ -94,5 +99,5 @@ const Email: React.FC = () => {
     </div>
   );
 };
-
+  
 export default Email;

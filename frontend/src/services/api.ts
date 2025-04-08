@@ -25,17 +25,22 @@ interface OTPSend{
   email: string;
   isRegister: boolean;
 }
+interface VerifymasterkeyResponse {
+  status?: string;
+  message?: string;
+}
 export const authApi = {
   sendOTP: (data: OTPSend) => 
     api.post<OTPResponse>('/api/send-otp',data),
     
   verifyOTP: (otp: string) => 
     api.post<VerifyOTPResponse>('/api/verify-otp', { otp }),
-    
+  delete_users: () =>
+    api.post('/api/delete-all-users'),
   checkHealth: () => 
     api.get<{status: string, session_active: boolean}>('/health'),
   verifyUser: (user: { username: string, masterkey: string, is_registration: boolean }) =>
-    api.post('/api/verify-master-key', user),
+    api.post<VerifymasterkeyResponse>('/api/verify-user-masterkey', user),
   logout: () => 
     api.post('/api/logout'),
 };

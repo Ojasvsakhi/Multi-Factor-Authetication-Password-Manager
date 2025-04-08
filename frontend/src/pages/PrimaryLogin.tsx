@@ -9,19 +9,35 @@ const PrimaryLogin: React.FC = () => {
   const [masterkey, setMasterkey] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
+  const [success, setSuccess] = useState("");
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
+    setSuccess("");
     try {
-      const response = await authApi.verifyUser({ username: username, masterkey: masterkey, is_registration: false });
-      if (response.data.exists) {
-        // User exists, navigate to the current login page
-        navigate("/otp-login");
+      const response = await authApi.verifyUser({ 
+        username: username, 
+        masterkey: masterkey, 
+        is_registration: false 
+      });
+  
+      if (response.data.status === "success") {
+        // Set success message
+        setSuccess("Login successful!");
+      
+        setTimeout(() => {
+          navigate("/email", { 
+            replace: true,
+            state: {
+              username,
+              masterkey,
+              is_authentication: true,
+              is_registration: false,
+            }
+          });
+        }, 1000);
       } else {
-        // User does not exist, navigate to email OTP registration page
-        navigate("/register");
+        setError("Invalid username or master key");
       }
     } catch (error: any) {
       setError(error.response?.data?.message || "Login failed");
@@ -79,7 +95,7 @@ const PrimaryLogin: React.FC = () => {
           </div>
 
           {error && <p className="text-red-500 text-sm">{error}</p>}
-
+          {success && <p className="text-green-500 text-sm">{success}</p>}
           <button type="submit" className="cyber-button w-full">
             Authenticate
           </button>

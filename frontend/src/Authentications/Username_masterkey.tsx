@@ -97,7 +97,7 @@ const Username_masterkey: React.FC = () => {
 
       if (is_registration) {
         // For registration flow
-        navigate("/email", {
+        navigate("/puzzle", {
           state: {
             is_registration,
             username,
@@ -106,8 +106,8 @@ const Username_masterkey: React.FC = () => {
         });
       } else {
         // For login flow
-        if (response.data.exists) {
-          navigate("/otp-login");
+        if (response.data.status === "success") {
+          navigate("/email");
         } else {
           setError("Invalid username or master key. Please try again.");
         }

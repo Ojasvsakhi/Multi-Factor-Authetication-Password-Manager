@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import bcrypt
 import uuid
+import logging
 # Load environment variables
 load_dotenv()
 
@@ -16,7 +17,7 @@ class User(db.Model):
     uid = db.Column(db.String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     email = db.Column(db.String(120), unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True)
-    master_key = db.Column(db.String(128))
+    master_key_hash = db.Column(db.String(128))
     last_known_location = db.Column(db.String(255))
     puzzle_completed = db.Column(db.Boolean, default=False)
     otp_verified = db.Column(db.Boolean, default=False)
@@ -29,14 +30,21 @@ class User(db.Model):
         self.uid = str(uuid.uuid4())
 
     def set_master_key(self, master_key: str):
+        """Hash and store the master key"""
         salt = bcrypt.gensalt()
-        self.master_key_hash = bcrypt.hashpw(master_key.encode('utf-8'), salt)
+        hashed = bcrypt.hashpw(master_key.encode('utf-8'), salt)
+        self.master_key_hash = hashed.decode('utf-8')  # Store as string
 
     def verify_master_key(self, master_key: str) -> bool:
+        """Verify the master key"""
         if not self.master_key_hash:
             return False
-        return bcrypt.checkpw(master_key.encode('utf-8'), self.master_key_hash)
-
+        try:
+            stored_hash = self.master_key_hash.encode('utf-8')  # Convert back to bytes
+            return bcrypt.checkpw(master_key.encode('utf-8'), stored_hash)
+        except Exception as e:
+            logging.error(f"Master key verification error: {str(e)}")
+            return False
     def update_location(self, location: str):
         self.last_known_location = location
         db.session.commit()

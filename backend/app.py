@@ -143,17 +143,33 @@ def send_otp():
         if not email:
             return jsonify({'error': 'Email is required'}), 400
         
-        # Check for existing user only during registration
-        if is_registration:
+        if not is_registration:
+            # Check if there's an authenticated session
+            username = session.get('username')
+            if not username:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Not authenticated'
+                }), 401
+            
+            # Verify email matches the authenticated user
+            user = User.query.filter_by(username=username).first()
+            if not user or user.email != email:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Email does not match authenticated user'
+                }), 401
+        else:
+            # Registration flow
             existing_user = User.query.filter_by(email=email).first()
-            logging.info(f"Checking for existing user: {email}: {existing_user}")
             if existing_user:
                 return jsonify({
                     'status': 'error',
                     'message': 'Email already registered'
                 }), 400
         
-        session.clear()
+        # Generate and send OTP
+        session.clear()  # Clear previous session data
         otp = generate_otp()
         success, message = send_otp_email(email, otp)
         
@@ -163,6 +179,8 @@ def send_otp():
             session['otp'] = str(otp)
             session['otp_expires'] = time.time() + 300
             session['is_registration'] = is_registration
+            if not is_registration:
+                session['username'] = username  # Preserve username in session
             
             logging.info(f"Session data stored for {email} - Registration: {is_registration}")
             
@@ -179,7 +197,7 @@ def send_otp():
     except Exception as e:
         logging.error(f"Error in send_otp: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-# Modify verify-otp route
+
 @app.route('/api/verify-otp', methods=['POST'])
 def verify_otp():
     try:
@@ -236,8 +254,19 @@ def verify_otp():
 
     except Exception as e:
         logging.error(f"Error in verify_otp: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
-@app.route('/api/verify-master-key', methods=['POST'])
+        return jsonify({'error': 'Internal server error'}), 500, 500
+@app.route('/api/delete-all-users', methods=['POST'])
+def delete_all_users():
+    try:
+        # WARNING: This deletes ALL users
+        User.query.delete()
+        db.session.commit()
+        logging.info("All users deleted successfully")
+        return jsonify({'message': 'All users deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+@app.route('/api/verify-user-masterkey', methods=['POST'])
 def verify_master_key():
     try:
         data = request.get_json()
@@ -250,14 +279,6 @@ def verify_master_key():
                 'status': 'error',
                 'message': 'Username and master key are required'
             }), 400
-
-        # Check if OTP was verified
-        if not session.get('otp_verified'):
-            return jsonify({
-                'status': 'error',
-                'message': 'Email verification required'
-            }), 401
-
         if is_registration:
             # For registration: Create new user credentials
             user = User.query.filter_by(email=session.get('email')).first()
@@ -267,12 +288,8 @@ def verify_master_key():
                     'message': 'Email verification failed'
                 }), 400
 
-            # Hash the master key before storing
-            hashed_master_key = bcrypt.hashpw(masterkey.encode('utf-8'), bcrypt.gensalt())
-            
-            # Update user with username and master key
             user.username = username
-            user.master_key_hash = hashed_master_key
+            user.set_master_key(masterkey)  # Using the model's method
             
             try:
                 db.session.commit()
@@ -294,7 +311,7 @@ def verify_master_key():
         else:
             # For login: Verify existing credentials
             user = User.query.filter_by(username=username).first()
-            if not user or not bcrypt.checkpw(masterkey.encode('utf-8'), user.master_key):
+            if not user or not user.verify_master_key(masterkey):  # Using the model's method
                 return jsonify({
                     'status': 'error',
                     'message': 'Invalid username or master key'
