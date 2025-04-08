@@ -272,7 +272,7 @@ def verify_master_key():
             
             # Update user with username and master key
             user.username = username
-            user.master_key = hashed_master_key
+            user.master_key_hash = hashed_master_key
             
             try:
                 db.session.commit()
