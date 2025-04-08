@@ -236,9 +236,85 @@ def verify_otp():
 
     except Exception as e:
         logging.error(f"Error in verify_otp: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500, 500
-@app.route('/api/verift-master-key', methods=['POST'])
+        return jsonify({'error': 'Internal server error'}), 500
+@app.route('/api/verify-master-key', methods=['POST'])
 def verify_master_key():
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        masterkey = data.get('masterkey')
+        is_registration = data.get('is_registration', False)
+        
+        if not username or not masterkey:
+            return jsonify({
+                'status': 'error',
+                'message': 'Username and master key are required'
+            }), 400
+
+        # Check if OTP was verified
+        if not session.get('otp_verified'):
+            return jsonify({
+                'status': 'error',
+                'message': 'Email verification required'
+            }), 401
+
+        if is_registration:
+            # For registration: Create new user credentials
+            user = User.query.filter_by(email=session.get('email')).first()
+            if not user:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Email verification failed'
+                }), 400
+
+            # Hash the master key before storing
+            hashed_master_key = bcrypt.hashpw(masterkey.encode('utf-8'), bcrypt.gensalt())
+            
+            # Update user with username and master key
+            user.username = username
+            user.master_key = hashed_master_key
+            
+            try:
+                db.session.commit()
+                session['authenticated'] = True
+                session['username'] = username
+                
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Master credentials created successfully',
+                    'next_step': 'dashboard'
+                }), 200
+            except Exception as db_error:
+                db.session.rollback()
+                logging.error(f"Database error: {str(db_error)}")
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Failed to store master credentials'
+                }), 500
+        else:
+            # For login: Verify existing credentials
+            user = User.query.filter_by(username=username).first()
+            if not user or not bcrypt.checkpw(masterkey.encode('utf-8'), user.master_key):
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Invalid username or master key'
+                }), 401
+
+            session['authenticated'] = True
+            session['username'] = username
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Authentication successful',
+                'next_step': 'dashboard'
+            }), 200
+
+    except Exception as e:
+        logging.error(f"Error in verify_master_key: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Internal server error'
+        }), 500
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
