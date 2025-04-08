@@ -11,10 +11,12 @@ import os
 from retry import retry
 import logging
 from datetime import timedelta
+from database import db,init_db,User,Password
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
+init_db(app)
 # Session configuration
 app.config.update(
     SECRET_KEY=os.getenv('SECRET_KEY'),
