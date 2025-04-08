@@ -16,7 +16,7 @@ class User(db.Model):
     uid = db.Column(db.String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     email = db.Column(db.String(120), unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True)
-    master_key_hash = db.Column(db.String(128))
+    master_key = db.Column(db.String(128))
     last_known_location = db.Column(db.String(255))
     puzzle_completed = db.Column(db.Boolean, default=False)
     otp_verified = db.Column(db.Boolean, default=False)

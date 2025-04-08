@@ -15,7 +15,7 @@ const PrimaryLogin: React.FC = () => {
     setError("");
 
     try {
-      const response = await authApi.verifyUser({ username, masterkey });
+      const response = await authApi.verifyUser({ username: username, masterkey: masterkey, is_registration: false });
       if (response.data.exists) {
         // User exists, navigate to the current login page
         navigate("/otp-login");
