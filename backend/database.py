@@ -18,7 +18,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     username = db.Column(db.String(80), unique=True)
     master_key_hash = db.Column(db.String(128))
-    last_known_location = db.Column(db.String(255))
+    matrix_pattern = db.Column(db.String(36))  # Store 6x6 binary matrix
     puzzle_completed = db.Column(db.Boolean, default=False)
     otp_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -33,7 +33,7 @@ class User(db.Model):
         """Hash and store the master key"""
         salt = bcrypt.gensalt()
         hashed = bcrypt.hashpw(master_key.encode('utf-8'), salt)
-        self.master_key_hash = hashed.decode('utf-8')  # Store as string
+        self.master_key_hash = hashed.decode('utf-8')
 
     def verify_master_key(self, master_key: str) -> bool:
         """Verify the master key"""
@@ -48,20 +48,46 @@ class User(db.Model):
         except Exception as e:
             logging.error(f"Master key verification error for {self.username}: {str(e)}")
             return False
-    def update_location(self, location: str):
-        self.last_known_location = location
-        db.session.commit()
+
+    def set_matrix_pattern(self, matrix: list) -> bool:
+        """Store the matrix pattern"""
+        try:
+            if not matrix or len(matrix) != 6 or any(len(row) != 6 for row in matrix):
+                logging.error("Invalid matrix format")
+                return False
+            matrix_str = ''.join([''.join(map(str, row)) for row in matrix])
+            self.matrix_pattern = matrix_str
+            db.session.commit()
+            return True
+        except Exception as e:
+            logging.error(f"Error setting matrix pattern: {str(e)}")
+            return False
+
+    def verify_matrix_pattern(self, matrix: list) -> bool:
+        """Verify the submitted matrix pattern"""
+        try:
+            if not self.matrix_pattern:
+                logging.error(f"No matrix pattern found for user: {self.username}")
+                return False
+            submitted = ''.join([''.join(map(str, row)) for row in matrix])
+            return submitted == self.matrix_pattern
+        except Exception as e:
+            logging.error(f"Matrix verification error for {self.username}: {str(e)}")
+            return False
 
     def complete_puzzle(self):
+        """Mark puzzle as completed"""
         self.puzzle_completed = True
         db.session.commit()
 
     @staticmethod
     def get_by_email(email: str) -> 'User':
+        """Get user by email"""
         return User.query.filter_by(email=email).first()
 
     @staticmethod
     def create_user(email: str) -> 'User':
+        """Create new user"""
         user = User(email=email)
         db.session.add(user)
         db.session.commit()

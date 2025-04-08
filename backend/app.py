@@ -79,31 +79,7 @@ def is_valid_email(email):
 
 def generate_otp():
     return random.randint(100000, 999999)
-def verify_master_credentials(username, master_key):
-    try:
-        # Check if username exists in database
-        # Verify master key hash
-        # Return True if valid, False otherwise
-        return True, "Credentials verified"
-    except Exception as e:
-        return False, str(e)
-def verify_puzzle(puzzle_solution):
-    try:
-        # Implement puzzle verification logic
-        # Return True if solution is correct
-        stored_solution = session.get('puzzle_solution')
-        return puzzle_solution == stored_solution, "Puzzle verified"
-    except Exception as e:
-        return False, str(e)
 
-def verify_geolocation(latitude, longitude):
-    try:
-        # Implement geolocation verification
-        # Compare with allowed locations or previous login locations
-        # Return True if location is valid
-        return True, "Location verified"
-    except Exception as e:
-        return False, str(e)
 
 @retry(tries=3, delay=1, backoff=2, logger=logging.getLogger(__name__))
 def send_otp_email(user_email, otp):
@@ -197,6 +173,80 @@ def send_otp():
     except Exception as e:
         logging.error(f"Error in send_otp: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
+@app.route('/api/verify-matrix', methods=['POST'])
+def verify_matrix():
+    try:
+        data = request.get_json()
+        matrix = data.get('matrix')
+        is_registration = data.get('is_registration', False)
+        username = session.get('username')
+
+        if not matrix or len(matrix) != 6 or any(len(row) != 6 for row in matrix):
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid matrix format'
+            }), 400
+
+        if is_registration:
+            # Registration flow - store matrix pattern
+            user = User.query.filter_by(email=session.get('email')).first()
+            if not user:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Email verification failed'
+                }), 400
+
+            try:
+                user.set_matrix_pattern(matrix)
+                db.session.commit()
+                session['matrix_verified'] = True
+                
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Matrix pattern stored successfully',
+                    'next_step': 'email'
+                }), 200
+            except Exception as db_error:
+                db.session.rollback()
+                logging.error(f"Database error: {str(db_error)}")
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Failed to store matrix pattern'
+                }), 500
+        else:
+            # Authentication flow - verify matrix pattern
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'User not found'
+                }), 401
+
+            if not user.matrix_pattern:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Matrix pattern not set'
+                }), 400
+
+            if user.verify_matrix_pattern(matrix):
+                session['matrix_verified'] = True
+                return jsonify({
+                    'status': 'success',
+                    'message': 'Matrix verified successfully',
+                    'next_step': 'email'
+                }), 200
+            else:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Invalid matrix pattern'
+                }), 401
+
+    except Exception as e:
+        logging.error(f"Error in verify_matrix: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Internal server error'
+        }), 500
 
 @app.route('/api/verify-otp', methods=['POST'])
 def verify_otp():
