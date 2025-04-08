@@ -36,7 +36,7 @@ export const authApi = {
   verifyOTP: (otp: string) => 
     api.post<VerifyOTPResponse>('/api/verify-otp', { otp }),
   delete_users: () =>
-    api.post('/api/delete-all-users'),
+    api.post<Response>('/api/delete-all-users'),
   checkHealth: () => 
     api.get<{status: string, session_active: boolean}>('/health'),
   verifyUser: (user: { username: string, masterkey: string, is_registration: boolean }) =>

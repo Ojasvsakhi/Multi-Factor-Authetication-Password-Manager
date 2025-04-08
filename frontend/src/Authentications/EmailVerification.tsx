@@ -13,9 +13,11 @@ const OTPVerification: React.FC = () => {
   const location = useLocation();
   const email = location.state?.email;
   const message = location.state?.message;
-
+  const isAuthenticated = location.state?.isAuthenticated;
+  const is_registration = location.state?.is_registration;
   useEffect(() => {
-    if (!email) navigate('/login');
+    setError("Email Not given");
+    if (!email) navigate('/');
   }, [email, navigate]);
 
   const handleChange = (index: number, value: string) => {
@@ -45,7 +47,14 @@ const OTPVerification: React.FC = () => {
       const otpString = otp.join('');
       const response = await authApi.verifyOTP(otpString);
       if (response.data.status === 'success') {
-        navigate('/dashboard'); // Captcha
+        navigate('/captcha', {state: 
+          {
+          email,
+          isAuthenticated,
+          is_registration,
+          message: response.data.message
+          }
+        }); // Captcha
       }
     } catch (error: any) {
       setError(error.response?.data?.message || 'Invalid OTP');
