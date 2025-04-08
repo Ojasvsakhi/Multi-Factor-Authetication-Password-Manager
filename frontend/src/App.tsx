@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+// Pages
 import PrimaryLogin from "./pages/PrimaryLogin";
 import Email from "./Authentications/Email";
 import Username_masterkey from "./Authentications/Username_masterkey";
@@ -8,10 +10,15 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import PasswordVault from "./pages/PasswordVault";
 import EncryptionSettings from "./pages/EncryptionSettings";
+import ImageGridCaptcha from "./Authentications/ImageGridCaptcha"; // ✅ NEW
+
+// Background Effects
 import { ParticlesBackground } from "./components/ParticlesBackground";
 import { HexGrid } from "./components/HexGrid";
 import { RippleEffect } from "./components/RippleEffect";
 import { MatrixRain } from "./components/MatrixRain";
+
+// Analytics
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
 function App() {
@@ -26,7 +33,7 @@ function App() {
     <Router>
       <SpeedInsights />
       <div className="min-h-screen bg-black overflow-hidden relative">
-        {/* Background Effects Layer */}
+        {/* Background Animations */}
         <div className="fixed inset-0 z-0">
           {isMounted && (
             <>
@@ -38,7 +45,7 @@ function App() {
           )}
         </div>
 
-        {/* Content Layer */}
+        {/* Foreground Routes */}
         <div className="relative z-10 min-h-screen">
           <Routes>
             <Route path="/" element={<PrimaryLogin />} />
@@ -49,6 +56,9 @@ function App() {
             <Route path="/vault" element={<PasswordVault />} />
             <Route path="/settings" element={<EncryptionSettings />} />
             <Route path="/username_masterkey" element={<Username_masterkey />} />
+
+            {/* ✅ Custom CAPTCHA Route */}
+            <Route path="/grid-captcha" element={<ImageGridCaptcha />} />
           </Routes>
         </div>
       </div>

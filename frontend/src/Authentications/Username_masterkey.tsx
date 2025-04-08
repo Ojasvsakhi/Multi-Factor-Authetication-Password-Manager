@@ -5,7 +5,7 @@ import { Lock, User, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { authApi } from "../services/api";
 const USERNAME_REGEX = /^[a-zA-Z0-9_]{4,20}$/;
 const MASTERKEY_REGEX =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  /^(?=.[a-z])(?=.[A-Z])(?=.\d)(?=.[@$!%?&])[A-Za-z\d@$!%?&]{8,}$/;
 
 const generateMasterKey = (): string => {
   const lowercase = "abcdefghijklmnopqrstuvwxyz";
