@@ -45,7 +45,7 @@ const OTPVerification: React.FC = () => {
       const otpString = otp.join('');
       const response = await authApi.verifyOTP(otpString);
       if (response.data.status === 'success') {
-        navigate('/dashboard');
+        navigate('/dashboard'); // Captcha
       }
     } catch (error: any) {
       setError(error.response?.data?.message || 'Invalid OTP');

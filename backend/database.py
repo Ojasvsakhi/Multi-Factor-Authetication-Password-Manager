@@ -38,12 +38,15 @@ class User(db.Model):
     def verify_master_key(self, master_key: str) -> bool:
         """Verify the master key"""
         if not self.master_key_hash:
+            logging.error(f"No master key hash found for user: {self.username}")
             return False
         try:
-            stored_hash = self.master_key_hash.encode('utf-8')  # Convert back to bytes
-            return bcrypt.checkpw(master_key.encode('utf-8'), stored_hash)
+            stored_hash = self.master_key_hash.encode('utf-8')
+            result = bcrypt.checkpw(master_key.encode('utf-8'), stored_hash)
+            logging.info(f"Master key verification for {self.username}: {result}")
+            return result
         except Exception as e:
-            logging.error(f"Master key verification error: {str(e)}")
+            logging.error(f"Master key verification error for {self.username}: {str(e)}")
             return False
     def update_location(self, location: str):
         self.last_known_location = location

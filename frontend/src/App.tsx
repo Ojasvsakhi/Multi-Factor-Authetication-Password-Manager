@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import PrimaryLogin from "./pages/PrimaryLogin";
 import Email from "./Authentications/Email";
 import Username_masterkey from "./Authentications/Username_masterkey";
-import OTPVerification from "./pages/EmailVerification";
+import OTPVerification from "./Authentications/EmailVerification";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import PasswordVault from "./pages/PasswordVault";

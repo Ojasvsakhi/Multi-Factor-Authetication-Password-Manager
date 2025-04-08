@@ -10,6 +10,10 @@ const PrimaryLogin: React.FC = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const [success, setSuccess] = useState("");
+  const handleclick = () => {
+    const response =  authApi.delete_users();
+    console.log("Database users deleted successfully");
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -50,6 +54,14 @@ const PrimaryLogin: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative">
+      {/* Add back button */}
+      <button
+        onClick={handleclick}
+        className="absolute top-4 left-4 cyber-button-small flex items-center gap-2"
+        title="Go Back"
+      >
+        Delete Database
+      </button>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
