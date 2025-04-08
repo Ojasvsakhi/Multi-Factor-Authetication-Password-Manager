@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import PrimaryLogin from "./pages/PrimaryLogin";
-import Login from "./Authentications/Email";
+import Email from "./Authentications/Email";
+import Username_masterkey from "./Authentications/Username_masterkey";
 import OTPVerification from "./pages/EmailVerification";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -41,12 +42,13 @@ function App() {
         <div className="relative z-10 min-h-screen">
           <Routes>
             <Route path="/" element={<PrimaryLogin />} />
-            <Route path="/login" element={<Login />} />
+            <Route path="/email" element={<Email />} />
             <Route path="/verify" element={<OTPVerification />} />
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/vault" element={<PasswordVault />} />
             <Route path="/settings" element={<EncryptionSettings />} />
+            <Route path="/username_masterkey" element={<Username_masterkey />} />
           </Routes>
         </div>
       </div>

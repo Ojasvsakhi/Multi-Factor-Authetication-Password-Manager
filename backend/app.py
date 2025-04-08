@@ -138,13 +138,22 @@ def send_otp():
     try:
         data = request.get_json()
         email = data.get('email')
-        is_registration = data.get('is_registration', False)  # Boolean flag: True for registration, False for login
+        is_registration = data.get('isRegister', False)
         
         if not email:
             return jsonify({'error': 'Email is required'}), 400
         
-        session.clear()
+        # Check for existing user only during registration
+        if is_registration:
+            existing_user = User.query.filter_by(email=email).first()
+            logging.info(f"Checking for existing user: {email}: {existing_user}")
+            if existing_user:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Email already registered'
+                }), 400
         
+        session.clear()
         otp = generate_otp()
         success, message = send_otp_email(email, otp)
         
@@ -153,7 +162,7 @@ def send_otp():
             session['email'] = email
             session['otp'] = str(otp)
             session['otp_expires'] = time.time() + 300
-            session['is_registration'] = is_registration  # Store the flag
+            session['is_registration'] = is_registration
             
             logging.info(f"Session data stored for {email} - Registration: {is_registration}")
             
@@ -170,7 +179,6 @@ def send_otp():
     except Exception as e:
         logging.error(f"Error in send_otp: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-
 # Modify verify-otp route
 @app.route('/api/verify-otp', methods=['POST'])
 def verify_otp():
@@ -180,23 +188,42 @@ def verify_otp():
         email = session.get('email')
         stored_otp = session.get('otp')
         otp_expires = session.get('otp_expires')
-        is_registration = session.get('is_registration', False)
-
-        # ... existing validation code ...
+        is_registration = session.get('is_registration', True)
 
         if entered_otp == stored_otp:
             session['otp_verified'] = True
             session.pop('otp', None)
             session.pop('otp_expires', None)
-            
+
             # Different flows based on boolean flag
             if is_registration:
-                return jsonify({
-                    'status': 'success',
-                    'message': 'Registration OTP verified',
-                    'email': email,
-                    'next_step': 'create_master_credentials'
-                }), 200
+                # Check if email already exists
+                existing_user = User.query.filter_by(email=email).first()
+                
+                if existing_user:
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'Email already registered'
+                    }), 400
+
+                # Create new user with email
+                new_user = User(email=email)
+                try:
+                    db.session.add(new_user)
+                    db.session.commit()
+                    return jsonify({
+                        'status': 'success',
+                        'message': 'Registration OTP verified and email stored',
+                        'email': email,
+                        'next_step': 'create_master_credentials'
+                    }), 200
+                except Exception as db_error:
+                    db.session.rollback()
+                    logging.error(f"Database error: {str(db_error)}")
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'Failed to store user data'
+                    }), 500
             else:
                 return jsonify({
                     'status': 'success',
@@ -209,7 +236,9 @@ def verify_otp():
 
     except Exception as e:
         logging.error(f"Error in verify_otp: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': 'Internal server error'}), 500, 500
+@app.route('/api/verift-master-key', methods=['POST'])
+def verify_master_key():
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()

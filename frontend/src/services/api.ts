@@ -34,7 +34,7 @@ export const authApi = {
     
   checkHealth: () => 
     api.get<{status: string, session_active: boolean}>('/health'),
-  verifyUser: (user: { username: string, masterkey: string }) =>
+  verifyUser: (user: { username: string, masterkey: string, is_registration: boolean }) =>
     api.post('/api/verify-user', user),
   logout: () => 
     api.post('/api/logout'),

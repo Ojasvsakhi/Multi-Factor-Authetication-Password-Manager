@@ -5,7 +5,7 @@ import { Shield, Mail } from "lucide-react";
 import { MatrixRain } from "../components/MatrixRain";
 import { HackerTerminal } from "../components/HackerTerminal";
 import { authApi } from "../services/api";
-const Login: React.FC = () => {
+const Email: React.FC = () => {
   const [email, setEmail] = useState("");
   const [isHacking, setIsHacking] = useState(false);
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const Login: React.FC = () => {
     setError(""); // Clear any previous errors
 
     try {
-      const response = await authApi.sendOTP(email);
+      const response = await authApi.sendOTP({email: email, isRegister: true});
       if (response.data.message) {
         navigate("/verify", {
           state: {
@@ -95,4 +95,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default Email;

@@ -40,7 +40,7 @@ const Register: React.FC = () => {
         // Print success message
         setSuccess(`${response.data.message}! Redirecting to ${response.data.next_step}...`);
         setTimeout(() => {
-          navigate("/dashboard", {
+          navigate("/Username_masterkey", {
             state: {
               is_registration: true,
               email: email,
