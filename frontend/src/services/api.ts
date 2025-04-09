@@ -41,6 +41,13 @@ export const authApi = {
     api.get<{status: string, session_active: boolean}>('/health'),
   verifyUser: (user: { username: string, masterkey: string, is_registration: boolean }) =>
     api.post<VerifymasterkeyResponse>('/api/verify-user-masterkey', user),
+  verifyMatrix: (data: { 
+    matrix: number[][], 
+    is_registration: boolean,
+    is_authenticated: boolean 
+  }) => api.post('/api/verify-matrix', data),
+  getSavedPattern: (email: string) =>
+    api.get(`/api/get-pattern/${email}`),
   logout: () => 
     api.post('/api/logout'),
 };

@@ -31,6 +31,8 @@ const Email: React.FC = () => {
         navigate("/verify", {
           state: {
             email,
+            username,
+            masterkey,
             is_registration,
             is_authenticated,
             message: response.data.message,
@@ -99,5 +101,5 @@ const Email: React.FC = () => {
     </div>
   );
 };
-  
+
 export default Email;

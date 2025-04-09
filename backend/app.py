@@ -33,7 +33,7 @@ app.config.update(
 Session(app)
 
 # CORS configuration
-CORS(app, 
+CORS(app,
      supports_credentials=True, 
      origins=["http://localhost:5173", 
              "https://cryptknight.vercel.app"],
@@ -111,6 +111,7 @@ def send_otp_email(user_email, otp):
 # Modify send-otp route
 @app.route('/api/send-otp', methods=['POST'])
 def send_otp():
+    logging.info("Received send-otp request")
     try:
         data = request.get_json()
         email = data.get('email')
@@ -178,8 +179,9 @@ def verify_matrix():
     try:
         data = request.get_json()
         matrix = data.get('matrix')
+        image_index = data.get('imageIndex')
         is_registration = data.get('is_registration', False)
-        username = session.get('username')
+        username = data.get('username')
 
         if not matrix or len(matrix) != 6 or any(len(row) != 6 for row in matrix):
             return jsonify({
@@ -187,8 +189,14 @@ def verify_matrix():
                 'message': 'Invalid matrix format'
             }), 400
 
+        if not isinstance(image_index, int) or image_index < 0 or image_index > 5:
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid image index'
+            }), 400
+
         if is_registration:
-            # Registration flow - store matrix pattern
+            # Registration flow - store matrix pattern and image index
             user = User.query.filter_by(email=session.get('email')).first()
             if not user:
                 return jsonify({
@@ -198,12 +206,13 @@ def verify_matrix():
 
             try:
                 user.set_matrix_pattern(matrix)
+                user.image_index = image_index
                 db.session.commit()
                 session['matrix_verified'] = True
                 
                 return jsonify({
                     'status': 'success',
-                    'message': 'Matrix pattern stored successfully',
+                    'message': 'Pattern stored successfully',
                     'next_step': 'email'
                 }), 200
             except Exception as db_error:
@@ -211,10 +220,10 @@ def verify_matrix():
                 logging.error(f"Database error: {str(db_error)}")
                 return jsonify({
                     'status': 'error',
-                    'message': 'Failed to store matrix pattern'
+                    'message': 'Failed to store pattern'
                 }), 500
         else:
-            # Authentication flow - verify matrix pattern
+            # Authentication flow - verify matrix pattern and image
             user = User.query.filter_by(username=username).first()
             if not user:
                 return jsonify({
@@ -222,24 +231,31 @@ def verify_matrix():
                     'message': 'User not found'
                 }), 401
 
-            if not user.matrix_pattern:
+            if not user.matrix_pattern or user.image_index is None:
                 return jsonify({
                     'status': 'error',
-                    'message': 'Matrix pattern not set'
+                    'message': 'Pattern not set'
                 }), 400
 
-            if user.verify_matrix_pattern(matrix):
-                session['matrix_verified'] = True
-                return jsonify({
-                    'status': 'success',
-                    'message': 'Matrix verified successfully',
-                    'next_step': 'email'
-                }), 200
-            else:
+            # Verify both matrix and image index match
+            if user.image_index != image_index:
                 return jsonify({
                     'status': 'error',
-                    'message': 'Invalid matrix pattern'
+                    'message': 'Invalid pattern'
                 }), 401
+
+            if not user.verify_matrix_pattern(matrix):
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Invalid pattern'
+                }), 401
+
+            session['matrix_verified'] = True
+            return jsonify({
+                'status': 'success',
+                'message': 'Pattern verified successfully',
+                'next_step': 'email'
+            }), 200
 
     except Exception as e:
         logging.error(f"Error in verify_matrix: {str(e)}")
@@ -248,6 +264,33 @@ def verify_matrix():
             'message': 'Internal server error'
         }), 500
 
+@app.route('/api/get-pattern/<username>', methods=['GET'])
+def get_pattern(email):
+    try:
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({
+                'status': 'error',
+                'message': 'User not found'
+            }), 404
+
+        if user.image_index is None:
+            return jsonify({
+                'status': 'error',
+                'message': 'No pattern found'
+            }), 404
+
+        return jsonify({
+            'status': 'success',
+            'imageIndex': user.image_index
+        }), 200
+
+    except Exception as e:
+        logging.error(f"Error in get_pattern: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Internal server error'
+        }), 500
 @app.route('/api/verify-otp', methods=['POST'])
 def verify_otp():
     try:

@@ -47,6 +47,7 @@ const Register: React.FC = () => {
           navigate("/Username_masterkey", {
             state: {
               is_registration: true,
+              is_authenticated: true,
               email: email,
               next_step: response.data.next_step
             }

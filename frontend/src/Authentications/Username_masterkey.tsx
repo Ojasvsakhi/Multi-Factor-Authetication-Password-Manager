@@ -36,7 +36,7 @@ const Username_masterkey: React.FC = () => {
   const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const is_registration = location.state?.is_registration || false;
-  const is_authentication = location.state?.is_authentication || false;
+  const is_authenticated = location.state?.is_authenticated || false;
   const [usernameError, setUsernameError] = useState("");
   const [masterkeyError, setMasterkeyError] = useState("");
 
@@ -103,11 +103,18 @@ const Username_masterkey: React.FC = () => {
       });
 
       if (is_registration) {
-        navigate("/puzzle", {
+        navigate("/captcha", {
           state: { is_registration, username, masterkey },
         });
       } else if (response.data.status === "success") {
-        navigate("/email");
+        navigate("/captcha", {
+          state: {
+            username,
+            masterkey,
+            is_registration,
+            is_authenticated,
+            message: "Proceed to pattern verification" // Adding message since ImageGridCaptcha expects it
+          },});
       } else {
         setError("Invalid username or master key. Please try again.");
       }
@@ -142,14 +149,14 @@ const Username_masterkey: React.FC = () => {
           <h1 className="text-3xl font-bold font-orbitron neon-text">
             {is_registration
               ? "CREATE MASTER KEY"
-              : is_authentication
+              : is_authenticated
               ? "VERIFY ACCESS"
               : "MASTER LOGIN"}
           </h1>
           <p className="mt-2 text-cyan-200/70">
             {is_registration
               ? "Set your username and master key"
-              : is_authentication
+              : is_authenticated
               ? "Verify your credentials"
               : "Enter your username and master key"}
           </p>
@@ -232,7 +239,7 @@ const Username_masterkey: React.FC = () => {
               ? "Authenticating..."
               : is_registration
               ? "Continue"
-              : is_authentication
+              : is_authenticated
               ? "Verify Access"
               : "Login"}
           </button>

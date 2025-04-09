@@ -19,6 +19,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True)
     master_key_hash = db.Column(db.String(128))
     matrix_pattern = db.Column(db.String(36))  # Store 6x6 binary matrix
+    image_index = db.Column(db.Integer)  # Add image index field
     puzzle_completed = db.Column(db.Boolean, default=False)
     otp_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -79,12 +80,29 @@ class User(db.Model):
         """Mark puzzle as completed"""
         self.puzzle_completed = True
         db.session.commit()
+    def set_image_index(self, index: int) -> bool:
+        """Store the image index"""
+        try:
+            if not isinstance(index, int) or index < 0 or index > 5:
+                logging.error("Invalid image index")
+                return False
+            self.image_index = index
+            return True
+        except Exception as e:
+            logging.error(f"Error setting image index: {str(e)}")
+            return False
 
+    def get_image_index(self) -> int:
+        """Get the stored image index"""
+        return self.image_index
     @staticmethod
     def get_by_email(email: str) -> 'User':
         """Get user by email"""
         return User.query.filter_by(email=email).first()
-
+    @staticmethod
+    def get_by_username(username: str) -> 'User':
+        """Get user by username"""
+        return User.query.filter_by(username=username).first()
     @staticmethod
     def create_user(email: str) -> 'User':
         """Create new user"""

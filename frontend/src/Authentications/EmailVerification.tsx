@@ -13,6 +13,8 @@ const OTPVerification: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email;
+  const username = location.state?.username||"";
+  const masterkey = location.state?.masterkey||"";
   const message = location.state?.message;
   const isAuthenticated = location.state?.isAuthenticated;
   const is_registration = location.state?.is_registration;
@@ -54,6 +56,8 @@ const OTPVerification: React.FC = () => {
         navigate('/captcha', {
           state: {
             email,
+            username,
+            masterkey,
             isAuthenticated,
             is_registration,
             message: response.data.message,
