@@ -181,40 +181,69 @@ def verify_matrix():
         matrix = data.get('matrix')
         image_index = data.get('imageIndex')
         is_registration = data.get('is_registration', False)
-        username = data.get('username')
+        is_authenticated = data.get('is_authenticated', False)
+        # Add detailed logging
+        logging.info("=== Matrix Verification Debug ===")
+        logging.info(f"Session email: {session.get('email')}")
+        logging.info(f"Is Registration: {is_registration}")
+        # Add debug logging
+        logging.info(f"Received matrix data: {matrix}")
+        logging.info(f"Received image index: {image_index}")
+        logging.info(f"Is registration: {is_registration}")
+        logging.info(f"Is authenticated: {is_authenticated}")
 
+        # Validate matrix format
         if not matrix or len(matrix) != 6 or any(len(row) != 6 for row in matrix):
             return jsonify({
                 'status': 'error',
                 'message': 'Invalid matrix format'
             }), 400
 
+        # Validate image index
         if not isinstance(image_index, int) or image_index < 0 or image_index > 5:
             return jsonify({
                 'status': 'error',
                 'message': 'Invalid image index'
             }), 400
 
+        # Check session
+        email = session.get('email')
+        logging.info(email)
+        if not email:
+            return jsonify({
+                'status': 'error',
+                'message': 'No active session'
+            }), 401
+
         if is_registration:
             # Registration flow - store matrix pattern and image index
-            user = User.query.filter_by(email=session.get('email')).first()
+            user = User.query.filter_by(email=email).first()
             if not user:
                 return jsonify({
                     'status': 'error',
-                    'message': 'Email verification failed'
-                }), 400
+                    'message': 'User not found'
+                }), 404
 
             try:
-                user.set_matrix_pattern(matrix)
-                user.image_index = image_index
+                # Set pattern and image index
+                pattern_set = user.set_matrix_pattern(matrix)
+                index_set = user.set_image_index(image_index)
+
+                if not pattern_set or not index_set:
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'Failed to save pattern'
+                    }), 500
+
+                # Commit changes
                 db.session.commit()
                 session['matrix_verified'] = True
-                
+                logging.info("Pattern stored successfully")
                 return jsonify({
                     'status': 'success',
-                    'message': 'Pattern stored successfully',
-                    'next_step': 'email'
+                    'message': 'Pattern stored successfully'
                 }), 200
+
             except Exception as db_error:
                 db.session.rollback()
                 logging.error(f"Database error: {str(db_error)}")
@@ -223,13 +252,13 @@ def verify_matrix():
                     'message': 'Failed to store pattern'
                 }), 500
         else:
-            # Authentication flow - verify matrix pattern and image
-            user = User.query.filter_by(username=username).first()
+            # Authentication flow - verify existing pattern
+            user = User.query.filter_by(email=email).first()
             if not user:
                 return jsonify({
                     'status': 'error',
                     'message': 'User not found'
-                }), 401
+                }), 404
 
             if not user.matrix_pattern or user.image_index is None:
                 return jsonify({
@@ -238,13 +267,7 @@ def verify_matrix():
                 }), 400
 
             # Verify both matrix and image index match
-            if user.image_index != image_index:
-                return jsonify({
-                    'status': 'error',
-                    'message': 'Invalid pattern'
-                }), 401
-
-            if not user.verify_matrix_pattern(matrix):
+            if user.image_index != image_index or not user.verify_matrix_pattern(matrix):
                 return jsonify({
                     'status': 'error',
                     'message': 'Invalid pattern'
@@ -253,8 +276,7 @@ def verify_matrix():
             session['matrix_verified'] = True
             return jsonify({
                 'status': 'success',
-                'message': 'Pattern verified successfully',
-                'next_step': 'email'
+                'message': 'Pattern verified successfully'
             }), 200
 
     except Exception as e:
@@ -263,7 +285,6 @@ def verify_matrix():
             'status': 'error',
             'message': 'Internal server error'
         }), 500
-
 @app.route('/api/get-pattern/<username>', methods=['GET'])
 def get_pattern(email):
     try:
@@ -284,7 +305,7 @@ def get_pattern(email):
             'status': 'success',
             'imageIndex': user.image_index
         }), 200
-
+        logging.info(f"Pattern saved successfully to {email}")
     except Exception as e:
         logging.error(f"Error in get_pattern: {str(e)}")
         return jsonify({

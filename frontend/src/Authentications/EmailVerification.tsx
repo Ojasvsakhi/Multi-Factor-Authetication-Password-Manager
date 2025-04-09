@@ -55,11 +55,11 @@ const OTPVerification: React.FC = () => {
       if (response.data.status === 'success') {
         navigate('/captcha', {
           state: {
-            email,
-            username,
-            masterkey,
-            isAuthenticated,
-            is_registration,
+            email: email,
+            username: username,
+            masterkey: masterkey,
+            isAuthenticated: isAuthenticated,
+            is_registration: is_registration,
             message: response.data.message,
           },
         });

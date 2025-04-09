@@ -43,6 +43,7 @@ export const authApi = {
     api.post<VerifymasterkeyResponse>('/api/verify-user-masterkey', user),
   verifyMatrix: (data: { 
     matrix: number[][], 
+    imageIndex: number,
     is_registration: boolean,
     is_authenticated: boolean 
   }) => api.post('/api/verify-matrix', data),

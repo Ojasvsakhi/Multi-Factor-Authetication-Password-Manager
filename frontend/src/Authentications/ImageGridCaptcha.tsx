@@ -4,7 +4,7 @@ import { authApi } from "../services/api";
 const imageList = ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg"];
 
 const ImageGridCaptcha = () => {
-  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
@@ -24,6 +24,9 @@ const ImageGridCaptcha = () => {
   );
   useEffect(() => {
     const fetchSavedPattern = async () => {
+      console.log("Email",email);
+      console.log("Username",username);
+      console.log("Masterkey",masterkey);
       if (is_registration && (!email || !username || !masterkey)) return;
       if (!is_registration && email) {
         try {
@@ -42,6 +45,7 @@ const ImageGridCaptcha = () => {
   }, [is_registration, email]);
   useEffect(() => {
     if (!message) {
+      console.log("message is null");
       navigate("/", { replace: true });
     }
   }, [message, navigate]);
@@ -132,6 +136,7 @@ const ImageGridCaptcha = () => {
     try {
       const response = await authApi.verifyMatrix({
         matrix: gridMatrix,
+        imageIndex: selectedImageIndex,
         is_registration,
         is_authenticated,
       });
