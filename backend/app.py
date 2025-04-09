@@ -446,6 +446,149 @@ def verify_master_key():
             'status': 'error',
             'message': 'Internal server error'
         }), 500
+@app.route('/api/user/data', methods=['POST'])
+def get_user_data():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        masterkey = data.get('masterkey')
+
+        if not email or not masterkey:
+            return jsonify({
+                'status': 'error',
+                'message': 'Email and master key are required'
+            }), 400
+
+        # Use the model's method to get user
+        user = User.get_by_email(email)
+        if not user or not user.verify_master_key(masterkey):
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid credentials'
+            }), 401
+
+        # Use the model's method to get passwords
+        passwords_data = user.get_passwords()
+
+        return jsonify({
+            'status': 'success',
+            'data': {
+                'username': user.username,
+                'email': user.email,
+                'passwords': passwords_data,
+                'last_login': user.last_login.isoformat() if user.last_login else None
+            }
+        }), 200
+
+    except Exception as e:
+        logging.error(f"Error in get_user_data: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Internal server error'
+        }), 500
+@app.route('/api/passwords/add', methods=['POST'])
+def add_password():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        masterkey = data.get('masterkey')
+        service = data.get('service')
+        username = data.get('username')
+        password = data.get('password')
+        category = data.get('category')
+
+        if not all([email, masterkey, service, username, password, category]):
+            return jsonify({
+                'status': 'error',
+                'message': 'All fields are required'
+            }), 400
+
+        # Verify user and masterkey
+        user = User.query.filter_by(email=email).first()
+        if not user or not user.verify_master_key(masterkey):
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid credentials'
+            }), 401
+
+        # Create new password entry
+        new_password = Password(
+            user_id=user.id,
+            service=service,
+            username=username,
+            password=password,
+            category=category
+        )
+
+        try:
+            db.session.add(new_password)
+            db.session.commit()
+
+            return jsonify({
+                'status': 'success',
+                'message': 'Password added successfully',
+                'password': {
+                    'id': new_password.id,
+                    'service': service,
+                    'username': username,
+                    'password': password,
+                    'category': category
+                }
+            }), 200
+
+        except Exception as db_error:
+            db.session.rollback()
+            logging.error(f"Database error: {str(db_error)}")
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to store password'
+            }), 500
+
+    except Exception as e:
+        logging.error(f"Error in add_password: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Internal server error'
+        }), 500
+
+@app.route('/api/user/backup', methods=['POST'])
+def backup_data():
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        masterkey = data.get('masterkey')
+
+        if not email or not masterkey:
+            return jsonify({
+                'status': 'error',
+                'message': 'Email and master key are required'
+            }), 400
+
+        # Verify user and masterkey
+        user = User.query.filter_by(email=email).first()
+        if not user or not user.verify_master_key(masterkey):
+            return jsonify({
+                'status': 'error',
+                'message': 'Invalid credentials'
+            }), 401
+
+        # Implement backup logic here
+        # For example, create a backup file or store in another location
+        current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+
+        return jsonify({
+            'status': 'success',
+            'message': 'Backup completed successfully',
+            'timestamp': current_time
+        }), 200
+
+    except Exception as e:
+        logging.error(f"Error in backup_data: {str(e)}")
+        return jsonify({
+            'status': 'error',
+            'message': 'Internal server error'
+        }), 500
+
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()

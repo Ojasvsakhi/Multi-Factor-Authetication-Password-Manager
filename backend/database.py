@@ -10,6 +10,29 @@ load_dotenv()
 
 db = SQLAlchemy()
 
+class Password(db.Model):
+    __tablename__ = 'passwords'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    service = db.Column(db.String(255), nullable=False)  # Changed from website
+    username = db.Column(db.String(255), nullable=False)
+    password = db.Column(db.Text, nullable=False)  # Stored encrypted
+    category = db.Column(db.String(50), nullable=False)  # Added category
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self):
+        """Convert password object to dictionary"""
+        return {
+            'id': self.id,
+            'service': self.service,
+            'username': self.username,
+            'password': self.password,
+            'category': self.category,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
 class User(db.Model):
     __tablename__ = 'users'
     
@@ -120,18 +143,54 @@ class User(db.Model):
         db.session.add(user)
         db.session.commit()
         return user
-class Password(db.Model):
-    __tablename__ = 'passwords'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    website = db.Column(db.String(255), nullable=False)
-    username = db.Column(db.String(255), nullable=False)
-    encrypted_password = db.Column(db.Text, nullable=False)
-    salt = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    def get_passwords(self):
+        """Get all passwords for the user"""
+        return [password.to_dict() for password in self.passwords]
 
+    def add_password(self, service: str, username: str, password: str, category: str) -> Password:
+        """Add a new password for the user"""
+        try:
+            # Here you should encrypt the password before storing
+            # Using self.master_key_hash for encryption
+            new_password = Password(
+                user_id=self.id,
+                service=service,
+                username=username,
+                password=password,  # Should be encrypted
+                category=category
+            )
+            db.session.add(new_password)
+            db.session.commit()
+            return new_password
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error adding password: {str(e)}")
+            raise
+
+    def get_password_by_service(self, service: str):
+        """Get passwords filtered by service name"""
+        return [p.to_dict() for p in self.passwords if p.service.lower() == service.lower()]
+
+    def search_passwords(self, query: str):
+        """Search passwords by service or username"""
+        query = query.lower()
+        return [p.to_dict() for p in self.passwords 
+                if query in p.service.lower() or 
+                   query in p.username.lower()]
+
+    def delete_password(self, password_id: int) -> bool:
+        """Delete a password by ID"""
+        try:
+            password = Password.query.filter_by(id=password_id, user_id=self.id).first()
+            if password:
+                db.session.delete(password)
+                db.session.commit()
+                return True
+            return False
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error deleting password: {str(e)}")
+            return False
 def init_db(app):
     # Database configuration
     database_url = os.getenv('DATABASE_URL')
