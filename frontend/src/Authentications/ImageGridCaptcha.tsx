@@ -3,13 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 const imageList = ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg"];
 
-interface CaptchaResponse {
-  success: boolean;
-  message: string;
-  next_step?: string;
-}
-
-const ImageGridCaptcha: React.FC = () => {
+const ImageGridCaptcha = () => {
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -20,7 +15,38 @@ const ImageGridCaptcha: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const email = location.state?.email || "";
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [gridMatrix, setGridMatrix] = useState(
+    Array.from({ length: 6 }, () => Array(6).fill(0))
+  );
+  useEffect(() => {
+    const fetchSavedPattern = async () => {
+      console.log("Email",email);
+      console.log("Username",username);
+      console.log("Masterkey",masterkey);
+      if (is_registration && (!email || !username || !masterkey)) return;
+      if (!is_registration && email) {
+        try {
+          const response = await authApi.getSavedPattern(email);
+          if (response.data.imageIndex !== undefined) {
+            setSelectedImageIndex(response.data.imageIndex);
+            setSelectedImage(imageList[response.data.imageIndex]);
+          }
+        } catch (error) {
+          setError("Failed to load your pattern image");
+        }
+      }
+    };
 
+    fetchSavedPattern();
+  }, [is_registration, email]);
+  useEffect(() => {
+    if (!message) {
+      console.log("message is null");
+      navigate("/", { replace: true });
+    }
+  }, [message, navigate]);
   useEffect(() => {
     if (!selectedImage) return;
     const image = new Image();
@@ -113,13 +139,11 @@ const ImageGridCaptcha: React.FC = () => {
     setSuccess("");
 
     try {
-      const response = await fetch("http://localhost:5000/verify-captcha", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: selectedImage,
-          matrix: gridMatrix,
-        }),
+      const response = await authApi.verifyMatrix({
+        matrix: gridMatrix,
+        imageIndex: selectedImageIndex,
+        is_registration,
+        is_authenticated,
       });
 
       const data: CaptchaResponse = await response.json();

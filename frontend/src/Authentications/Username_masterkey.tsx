@@ -39,7 +39,7 @@ const Username_masterkey: React.FC = () => {
   const is_authenticated = location.state?.is_authenticated || false;
   const [usernameError, setUsernameError] = useState("");
   const [masterkeyError, setMasterkeyError] = useState("");
-
+  const email = location.state?.email || "";
   const validateUsername = (value: string): boolean => {
     if (!USERNAME_REGEX.test(value)) {
       setUsernameError(
@@ -104,15 +104,16 @@ const Username_masterkey: React.FC = () => {
 
       if (is_registration) {
         navigate("/captcha", {
-          state: { is_registration, username, masterkey },
+          state: { is_registration: is_registration, username: username, masterkey: masterkey,email: email, message: "Proceed to register puzzle" },
         });
       } else if (response.data.status === "success") {
         navigate("/captcha", {
           state: {
-            username,
-            masterkey,
-            is_registration,
-            is_authenticated,
+            email: email,
+            username: username,
+            masterkey: masterkey,
+            is_registration: is_registration,
+            is_authenticated:is_authenticated,
             message: "Proceed to pattern verification" // Adding message since ImageGridCaptcha expects it
           },});
       } else {

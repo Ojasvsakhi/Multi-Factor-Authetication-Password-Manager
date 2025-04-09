@@ -56,9 +56,12 @@ class User(db.Model):
             if not matrix or len(matrix) != 6 or any(len(row) != 6 for row in matrix):
                 logging.error("Invalid matrix format")
                 return False
+                
+            # Add debug logging
             matrix_str = ''.join([''.join(map(str, row)) for row in matrix])
+            logging.info(f"Setting matrix pattern: {matrix_str}")
+            
             self.matrix_pattern = matrix_str
-            db.session.commit()
             return True
         except Exception as e:
             logging.error(f"Error setting matrix pattern: {str(e)}")
@@ -70,8 +73,15 @@ class User(db.Model):
             if not self.matrix_pattern:
                 logging.error(f"No matrix pattern found for user: {self.username}")
                 return False
+            
+            # Add debug logging
             submitted = ''.join([''.join(map(str, row)) for row in matrix])
-            return submitted == self.matrix_pattern
+            stored = self.matrix_pattern
+            logging.info(f"Stored pattern: {stored}")
+            logging.info(f"Submitted pattern: {submitted}")
+            logging.info(f"Match result: {submitted == stored}")
+            
+            return submitted == stored
         except Exception as e:
             logging.error(f"Matrix verification error for {self.username}: {str(e)}")
             return False
@@ -136,8 +146,6 @@ def init_db(app):
     # Create tables with all columns
     with app.app_context():
         try:
-            # Drop existing tables
-            db.drop_all()
             # Create new tables
             db.create_all()
             logging.info("Database tables created successfully")

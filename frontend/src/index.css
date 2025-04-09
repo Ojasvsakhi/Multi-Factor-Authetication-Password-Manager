@@ -5,7 +5,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Variables */
 :root {
   --neon-blue: #4deeea;
   --cyber-purple: #7c3aed;
@@ -16,7 +15,6 @@
   --grid-size: 40px;
 }
 
-/* Base Styles */
 @layer base {
   body {
     @apply bg-black text-gray-100 font-inter;
@@ -27,12 +25,10 @@
     position: relative;
   }
 
-  /* Selection Styling */
   ::selection {
     @apply bg-cyan-500/30 text-cyan-200;
   }
-  
-  /* Ensure all canvas backgrounds stay visible */
+
   canvas {
     position: fixed !important;
     top: 0;
@@ -44,117 +40,94 @@
   }
 }
 
-/* Component Styles */
 @layer components {
-  /* Enhanced Neon Border */
   .neon-border {
-    @apply relative border-2 border-cyan-500/50;
-    box-shadow: 
-      0 0 10px var(--neon-blue),
-      inset 0 0 10px var(--neon-blue);
+    @apply relative border border-cyan-500/30;
+    box-shadow:
+      0 0 6px rgba(77, 238, 234, 0.3),
+      inset 0 0 6px rgba(77, 238, 234, 0.2);
     animation: borderPulse 3s ease-in-out infinite alternate;
-    
+
     &::before {
       @apply content-[''] absolute -inset-1.5 rounded-md pointer-events-none;
       background: var(--neon-blue);
-      filter: blur(8px);
-      opacity: 0.3;
+      filter: blur(6px);
+      opacity: 0.15;
       z-index: -1;
     }
   }
 
-  /* Cyberpunk Text */
   .neon-text {
-    @apply text-cyan-400;
-    text-shadow: 
-      0 0 5px var(--neon-blue),
-      0 0 10px var(--neon-blue),
-      0 0 20px var(--neon-blue);
+    @apply text-cyan-300;
+    text-shadow:
+      0 0 2px rgba(77, 238, 234, 0.5),
+      0 0 4px rgba(77, 238, 234, 0.4);
     animation: textGlow 2s ease-in-out infinite alternate;
   }
 
-  /* Interactive Cyber Button */
   .cyber-button {
-    @apply relative px-6 py-3 bg-gray-900 border-2 border-cyan-500 rounded-lg 
-           text-cyan-400 font-orbitron uppercase tracking-wider overflow-hidden
-           transition-all duration-300 ease-out;
-    box-shadow: 
-      0 0 10px var(--neon-blue),
-      inset 0 0 10px var(--neon-blue);
-    
+    @apply relative px-5 py-2 bg-gray-800 border border-cyan-500/30 rounded-lg
+           text-cyan-300 font-orbitron tracking-wider uppercase transition-all;
+    box-shadow: 0 0 6px rgba(77, 238, 234, 0.2), inset 0 0 6px rgba(77, 238, 234, 0.15);
+
     &:hover {
-      @apply text-white bg-cyan-500/20;
-      box-shadow: 
-        0 0 20px var(--neon-blue),
-        inset 0 0 15px var(--neon-blue);
-      transform: translateY(-2px);
+      @apply text-white bg-cyan-500/10;
+      box-shadow: 0 0 8px rgba(77, 238, 234, 0.3), inset 0 0 10px rgba(77, 238, 234, 0.2);
+      transform: translateY(-1px);
     }
-    
+
     &::after {
-      @apply content-[''] absolute -left-1/2 -top-1/2 w-[200%] h-[200%] bg-cyan-500/10;
+      @apply content-[''] absolute -left-1/2 -top-1/2 w-[200%] h-[200%] bg-cyan-500/5;
       transform: rotate(45deg);
       transition: all 0.6s ease;
     }
-    
+
     &:hover::after {
       @apply left-[120%] top-[120%];
     }
   }
 
-  /* Cyber Input Field */
   .cyber-input {
-    @apply bg-gray-900/70 border-2 border-cyan-500/30 rounded-lg px-4 py-3
-           text-cyan-100 placeholder-cyan-700 font-mono
-           focus:border-cyan-400 focus:outline-none
-           transition-all duration-200;
-    box-shadow: 
-      inset 0 0 8px rgba(34, 211, 238, 0.2),
-      0 0 10px rgba(34, 211, 238, 0.1);
-    
-    &:focus {
-      box-shadow: 
-        inset 0 0 12px rgba(34, 211, 238, 0.3),
-        0 0 15px rgba(34, 211, 238, 0.3);
-    }
+    @apply bg-gray-900/60 border border-cyan-500/20 rounded px-4 py-2
+           text-cyan-200 placeholder-cyan-500 font-mono
+           focus:outline-none focus:ring-2 focus:ring-cyan-400/40 transition-all duration-200;
+    box-shadow: inset 0 0 4px rgba(34, 211, 238, 0.2);
   }
 
-  /* Grid Background */
   .grid-bg {
     @apply fixed inset-0 -z-10;
-    background-image: 
+    background-image:
       linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
       linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
     background-size: var(--grid-size) var(--grid-size);
     animation: gridScroll 40s linear infinite;
   }
 
-  /* Status Messages */
   .message-success {
     @apply bg-green-500/10 text-green-400 border-green-500/30;
     text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
     animation: pulse 2s infinite;
   }
-  
+
   .message-warning {
     @apply bg-yellow-500/10 text-yellow-400 border-yellow-500/30;
     animation: shake 0.5s ease-in-out infinite alternate;
   }
-  
+
   .message-info {
     @apply bg-cyan-500/10 text-cyan-400 border-cyan-500/30;
     animation: float 3s ease-in-out infinite;
   }
 }
 
-/* Animations */
 @keyframes borderPulse {
-  0% { box-shadow: 0 0 10px var(--neon-blue), inset 0 0 10px var(--neon-blue); }
-  100% { box-shadow: 0 0 20px var(--neon-blue), inset 0 0 20px var(--neon-blue); }
+  0% { box-shadow: 0 0 6px rgba(77, 238, 234, 0.3), inset 0 0 6px rgba(77, 238, 234, 0.2); }
+  100% { box-shadow: 0 0 10px rgba(77, 238, 234, 0.5), inset 0 0 10px rgba(77, 238, 234, 0.3); }
 }
 
 @keyframes textGlow {
-  from { text-shadow: 0 0 5px var(--neon-blue); }
-  to { text-shadow: 0 0 15px var(--neon-blue), 0 0 25px var(--neon-blue); }
+  from { text-shadow: 0 0 2px rgba(77, 238, 234, 0.5); }
+  to { text-shadow: 0 0 4px rgba(77, 238, 234, 0.5), 0 0 6px rgba(77, 238, 234, 0.3); }
 }
 
 @keyframes gridScroll {
@@ -177,21 +150,20 @@
   50% { transform: translateY(-5px); }
 }
 
-/* Retro Effects */
 .retro-glitch {
   position: relative;
-  
+
   &::before, &::after {
     @apply content-['attr(data-text)'] absolute top-0 left-0 w-full h-full;
     opacity: 0.8;
   }
-  
+
   &::before {
     @apply text-red-500;
     animation: glitch 1s infinite linear alternate-reverse;
     clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
   }
-  
+
   &::after {
     @apply text-blue-500;
     animation: glitch 1s infinite linear alternate-reverse;
@@ -208,7 +180,6 @@
   100% { transform: translate(0); }
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   @apply w-2 h-2;
 }
@@ -220,24 +191,22 @@
 ::-webkit-scrollbar-thumb {
   @apply bg-cyan-500/50 rounded-full;
   border: 1px solid rgba(34, 211, 238, 0.3);
-  
+
   &:hover {
     @apply bg-cyan-500/70;
   }
 }
 
-/* Responsive Adjustments */
 @media (max-width: 768px) {
   :root {
     --grid-size: 30px;
   }
-  
+
   .cyber-button {
     @apply px-4 py-2 text-sm;
   }
 }
 
-/* Critical fix for black screen issue */
 .background-container {
   position: fixed;
   top: 0;
@@ -248,7 +217,6 @@
   overflow: hidden;
 }
 
-/* Ensure content stays above backgrounds */
 .content-layer {
   position: relative;
   z-index: 1;
