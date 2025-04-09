@@ -124,12 +124,23 @@ class Password(db.Model):
 
 def init_db(app):
     # Database configuration
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///passwordmanager.db')
+    database_url = os.getenv('DATABASE_URL')
+    if database_url and database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # Initialize database
     db.init_app(app)
     
-    # Create tables
+    # Create tables with all columns
     with app.app_context():
-        db.create_all()
+        try:
+            # Drop existing tables
+            db.drop_all()
+            # Create new tables
+            db.create_all()
+            logging.info("Database tables created successfully")
+        except Exception as e:
+            logging.error(f"Error initializing database: {str(e)}")
+            raise
