@@ -17,9 +17,9 @@ const Register: React.FC = () => {
   const handleSendOTP = async () => {
     setError("");
     setSuccess("");
-    setLoading(true); // Set loading state
+    setLoading(true);
     try {
-      const response = await authApi.sendOTP({email: email, isRegister: true});
+      const response = await authApi.sendOTP({ email: email, isRegister: true });
       if (response.data.success) {
         setSuccess("OTP sent successfully!");
         setTimeout(() => {
@@ -30,17 +30,16 @@ const Register: React.FC = () => {
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to send OTP.");
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
 
   // Handle OTP verification
   const handleVerifyOTP = async () => {
     setError("");
-    setLoading(true); // Set loading state
+    setLoading(true);
     try {
       const response = await authApi.verifyOTP(otp);
-  
       if (response.data.status === "success") {
         setSuccess(`${response.data.message}! Redirecting to ${response.data.next_step}...`);
         setTimeout(() => {
@@ -49,8 +48,8 @@ const Register: React.FC = () => {
               is_registration: true,
               is_authenticated: true,
               email: email,
-              next_step: response.data.next_step
-            }
+              next_step: response.data.next_step,
+            },
           });
         }, 2000);
       } else {
@@ -59,7 +58,7 @@ const Register: React.FC = () => {
     } catch (err: any) {
       setError(err.response?.data?.error || "Something went wrong.");
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
 
@@ -70,8 +69,11 @@ const Register: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md p-8 rounded-lg bg-gray-800/50 backdrop-blur-xl neon-border"
       >
-        {/* ...existing header code... */}
-        
+        {/* Heading with Orbitron font and glow effect */}
+        <h2 className="text-3xl font-orbitron text-cyan-300 mb-6 text-center uppercase tracking-widest glow-text">
+          Register
+        </h2>
+
         {success && (
           <div className="mb-4 p-3 bg-green-500/20 border border-green-500 rounded-md">
             <p className="text-green-400 text-center">{success}</p>
@@ -95,8 +97,8 @@ const Register: React.FC = () => {
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <button 
-              onClick={handleSendOTP} 
+            <button
+              onClick={handleSendOTP}
               className="cyber-button w-full"
               disabled={loading}
             >
@@ -120,8 +122,8 @@ const Register: React.FC = () => {
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            <button 
-              onClick={handleVerifyOTP} 
+            <button
+              onClick={handleVerifyOTP}
               className="cyber-button w-full"
               disabled={loading}
             >
@@ -135,7 +137,7 @@ const Register: React.FC = () => {
         </div>
       </motion.div>
     </div>
-  );  
+  );
 };
 
 export default Register;
