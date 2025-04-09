@@ -49,6 +49,8 @@ export const authApi = {
   }) => api.post('/api/verify-matrix', data),
   getSavedPattern: (email: string) =>
     api.get(`/api/get-pattern/${email}`),
+  getDashboardInfo: () => 
+    axios.get('/api/dashboard/initial', { withCredentials: true }),
   logout: () => 
     api.post('/api/logout'),
 };

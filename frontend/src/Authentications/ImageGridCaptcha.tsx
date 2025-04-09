@@ -150,9 +150,11 @@ const ImageGridCaptcha = () => {
         setTimeout(() => {
           navigate("/dashboard", {
             state: {
-              is_registration,
-              is_authenticated,
-              email,
+              is_registration: is_registration,
+              is_authenticated: is_authenticated,
+              email: email,
+              username: username,
+              masterkey: masterkey,
               message: response.data.message,
             },
           });
