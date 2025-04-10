@@ -87,32 +87,50 @@ const PrimaryLogin: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-500/50" />
+            <User
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200 ${
+                error ? "text-red-400" : "text-cyan-500/50"
+              }`}
+            />
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Username"
-              className="cyber-input w-full pl-12"
+              className={`cyber-input w-full pl-12 transition-colors duration-200 ${
+                error ? "border-red-400 focus:border-red-400" : ""
+              }`}
               required
             />
           </div>
 
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-500/50" />
+            <Lock
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200 ${
+                error ? "text-red-400" : "text-cyan-500/50"
+              }`}
+            />
             <input
               type="password"
               value={masterkey}
               onChange={(e) => setMasterkey(e.target.value)}
               placeholder="Masterkey"
-              className="cyber-input w-full pl-12"
+              className={`cyber-input w-full pl-12 transition-colors duration-200 ${
+                error ? "border-red-400 focus:border-red-400" : ""
+              }`}
               required
             />
           </div>
 
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {success && <p className="text-green-500 text-sm">{success}</p>}
-          <button type="submit" className="cyber-button w-full" disabled={loading}>
+          {error && <p className="text-red-400 text-sm mt-2 ml-1">{error}</p>}
+          {success && (
+            <p className="text-green-500 text-sm mt-2 ml-1">{success}</p>
+          )}
+          <button
+            type="submit"
+            className="cyber-button w-full"
+            disabled={loading}
+          >
             {loading ? "Authenticating..." : "Authenticate"}
           </button>
         </form>
