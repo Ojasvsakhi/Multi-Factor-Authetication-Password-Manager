@@ -2,7 +2,7 @@ import React, { useState, useEffect} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, Mail } from "lucide-react";
-import { MatrixRain } from "../components/MatrixRain";
+// import { MatrixRain } from "../components/MatrixRain";
 import { HackerTerminal } from "../components/HackerTerminal";
 import { authApi } from "../services/api";
 const Email: React.FC = () => {
@@ -51,7 +51,7 @@ const Email: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-      <MatrixRain />
+      {/* <MatrixRain /> */}
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

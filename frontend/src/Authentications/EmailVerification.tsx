@@ -1,28 +1,28 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Lock } from 'lucide-react';
-import { authApi } from '../services/api';
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Lock } from "lucide-react";
+import { authApi } from "../services/api";
 
 const OTPVerification: React.FC = () => {
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email;
-  const username = location.state?.username||"";
-  const masterkey = location.state?.masterkey||"";
+  const username = location.state?.username || "";
+  const masterkey = location.state?.masterkey || "";
   const message = location.state?.message;
   const isAuthenticated = location.state?.isAuthenticated;
   const is_registration = location.state?.is_registration;
 
   useEffect(() => {
     if (!email) {
-      setError('Email not provided.');
-      navigate('/');
+      setError("Email not provided.");
+      navigate("/");
     }
   }, [email, navigate]);
 
@@ -39,7 +39,7 @@ const OTPVerification: React.FC = () => {
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
@@ -47,13 +47,13 @@ const OTPVerification: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setVerifying(true);
-    setError('');
+    setError("");
 
     try {
-      const otpString = otp.join('');
+      const otpString = otp.join("");
       const response = await authApi.verifyOTP(otpString);
-      if (response.data.status === 'success') {
-        navigate('/captcha', {
+      if (response.data.status === "success") {
+        navigate("/captcha", {
           state: {
             email: email,
             username: username,
@@ -64,10 +64,10 @@ const OTPVerification: React.FC = () => {
           },
         });
       } else {
-        setError('Invalid OTP');
+        setError("Invalid OTP");
       }
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Invalid OTP');
+      setError(error.response?.data?.message || "Invalid OTP");
     } finally {
       setVerifying(false);
     }
@@ -75,12 +75,12 @@ const OTPVerification: React.FC = () => {
 
   const handleResendOTP = async () => {
     setResending(true);
-    setError('');
+    setError("");
     try {
       await authApi.sendOTP(email);
-      setError('OTP resent successfully');
+      setError("OTP resent successfully");
     } catch (error: any) {
-      setError(error.response?.data?.message || 'Failed to resend OTP');
+      setError(error.response?.data?.message || "Failed to resend OTP");
     } finally {
       setResending(false);
     }
@@ -96,15 +96,23 @@ const OTPVerification: React.FC = () => {
         <div className="flex flex-col items-center mb-8">
           <motion.div
             animate={{
-              boxShadow: ['0 0 20px #22d3ee', '0 0 10px #22d3ee', '0 0 20px #22d3ee'],
+              boxShadow: [
+                "0 0 20px #22d3ee",
+                "0 0 10px #22d3ee",
+                "0 0 20px #22d3ee",
+              ],
             }}
             transition={{ duration: 2, repeat: Infinity }}
             className="w-16 h-16 bg-cyan-500/20 rounded-full flex items-center justify-center mb-4"
           >
             <Lock className="w-8 h-8 text-cyan-400" />
           </motion.div>
-          <h1 className="text-3xl font-bold font-orbitron neon-text">VERIFY OTP</h1>
-          <p className="mt-2 text-cyan-200/70">Enter the code sent to {email}</p>
+          <h1 className="text-3xl font-bold font-orbitron neon-text">
+            VERIFY OTP
+          </h1>
+          <p className="mt-2 text-cyan-200/70">
+            Enter the code sent to {email}
+          </p>
           {message && <p className="mt-2 text-green-400 text-sm">{message}</p>}
         </div>
 
@@ -119,8 +127,18 @@ const OTPVerification: React.FC = () => {
                 value={digit}
                 onChange={(e) => handleChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                className="w-12 h-14 text-center text-2xl font-orbitron cyber-input"
+                className="w-12 h-14 text-center text-2xl bg-gray-900/50 
+                 border-2 border-cyan-500/50 rounded-lg 
+                 text-cyan-400 font-['Share_Tech_Mono']
+                 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/50
+                 focus:outline-none transition-all duration-300
+                 shadow-[0_0_15px_rgba(34,211,238,0.1)]
+                 hover:shadow-[0_0_20px_rgba(34,211,238,0.2)]
+                 disabled:opacity-50 disabled:cursor-not-allowed
+                 placeholder-cyan-600/30"
                 disabled={verifying || resending}
+                inputMode="numeric"
+                pattern="\d*"
               />
             ))}
           </div>
@@ -130,7 +148,9 @@ const OTPVerification: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className={`text-sm text-center ${
-                error.toLowerCase().includes('success') ? 'text-green-400' : 'text-red-400'
+                error.toLowerCase().includes("success")
+                  ? "text-green-400"
+                  : "text-red-400"
               }`}
             >
               {error}
@@ -142,7 +162,7 @@ const OTPVerification: React.FC = () => {
             className="cyber-button w-full"
             disabled={verifying || otp.some((digit) => !digit)}
           >
-            {verifying ? 'Verifying...' : 'Verify OTP'}
+            {verifying ? "Verifying..." : "Verify OTP"}
           </button>
         </form>
 
@@ -152,7 +172,7 @@ const OTPVerification: React.FC = () => {
             disabled={resending}
             className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-50"
           >
-            {resending ? 'Sending...' : 'Resend Code'}
+            {resending ? "Sending..." : "Resend Code"}
           </button>
         </div>
       </motion.div>

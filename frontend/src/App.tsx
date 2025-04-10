@@ -11,7 +11,7 @@ import EncryptionSettings from "./pages/EncryptionSettings";
 import { ParticlesBackground } from "./components/ParticlesBackground";
 import { HexGrid } from "./components/HexGrid";
 import { RippleEffect } from "./components/RippleEffect";
-import { MatrixRain } from "./components/MatrixRain";
+// import { MatrixRain } from "./components/MatrixRain";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import ImageGridCaptcha from "./Authentications/ImageGridCaptcha";
 
@@ -30,7 +30,6 @@ function App() {
         <div className="fixed inset-0 z-0">
           {isMounted && (
             <>
-              <MatrixRain />
               <ParticlesBackground />
               <HexGrid />
               <RippleEffect />
