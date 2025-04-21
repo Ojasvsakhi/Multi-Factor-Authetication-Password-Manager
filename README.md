@@ -150,10 +150,4 @@ Access the application at `http://localhost:5173`
 - Navigation protection
 
 ## Screenshots
-[Add screenshots of key features]
-
-## Contributing
-[Add contribution guidelines]
-
-## License
-[Add license information]
+"To be added"
